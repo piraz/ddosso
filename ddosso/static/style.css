@@ -1,0 +1,85 @@
+#login-modal .login-box {
+	margin-top: 0;
+}
+
+.login-box {
+	margin-top: 60px;
+}
+
+.login-box button, .login-box input {
+	border-radius: 0;
+}
+
+.login-box .box-header h1 {
+	border-bottom: 1px solid #ddd;
+	font-size: 2em;
+	margin-bottom: 30px;
+}
+
+.login-box .section-social-buttons .btn-social {
+	margin-bottom: 10px;
+	margin-right: 15px;
+}
+
+.login-box .section-social-buttons .btn-social.google {
+	color: #ffffff;
+	background-color: #dd4b39;
+}
+
+.login-box .section-social-buttons .btn-social.facebook {
+	color: #ffffff;
+	background-color: #3b5998;
+}
+
+.login-box .section-social-buttons .btn-social.twitter {
+	color: #ffffff;
+	background-color: #1da1f2;
+}
+
+.login-box .section-social-buttons .btn-social.yahoo {
+	color: #ffffff;
+	background-color: #410093;
+}
+
+.login-box .section-social-buttons .btn-social.github {
+	color: #ffffff;
+	background-color: #86888a;
+}
+
+.login-box .section-social-buttons .btn-social.linkedin {
+	color: #ffffff;
+	background-color: #0077b5;
+}
+
+.login-box .section-form {
+	margin-top: 15px;
+}
+
+.login-box .section-form #forgot-pwd {
+	float: right;
+	color: #777;
+	margin-top: 15px;
+}
+
+.login-box .section-form #forgot-pwd:hover {
+	text-decoration: none;
+}
+
+.login-box .section-form .btn-login {
+	padding: 10px 35px;
+    margin-right: 15px;
+}
+
+.login-box .section-form .link-register {
+	color: #777;
+}
+
+.login-box .section-form .link-register:hover {
+	text-decoration: none;
+}
+
+.login-box .section-form .form-btns {
+	border-top: 1px solid #ddd;
+	padding-top: 15px;
+	margin-bottom: 0;
+}

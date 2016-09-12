@@ -90,6 +90,7 @@ ENV/
 
 # Firenado
 firenado.yml
+ddosso.yml
 
 # PyCharm
 .idea

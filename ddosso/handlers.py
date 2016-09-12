@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 #!/usr/bin/env python
 #
-# Copyright 2016 Flavio Garcia
+# Copyright 2015-2016 Flavio Garcia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +14,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# See: http://bit.ly/2cj7IRS
+
 import firenado.tornadoweb
+import tornado.escape
+from tornado.web import MissingArgumentError
+from . import discourse
+import base64
+import urllib.parse
+import hmac
+import hashlib
 
 
 class IndexHandler(firenado.tornadoweb.TornadoHandler):
 
     def get(self):
-        self.render("index.html")
+        payload = self.get_argument("sso", strip=False)
+        signature = self.get_argument("sig")
+        secret = self.component.conf['discourse']['sso']['secret']
+
+        if None in [payload, signature]:
+            raise MissingArgumentError("No SSO payload or signature. Please "
+                                       "contact support if this problem "
+                                       "persists.")
+        try:
+            assert discourse.sso_has_nounce(payload)
+        except AssertionError:
+            return MissingArgumentError("Invalid payload. Please contact "
+                                        "support if this problem persists.")
+
+        if not discourse.sso_validate(payload, signature, secret):
+            raise MissingArgumentError("Invalid payload. Please contact "
+                                       "support if this problem persists.")
+
+        sso_data = discourse.get_sso_data(payload)
+
+        params = {
+            'nonce': sso_data['nonce'],
+            'email': "test@test.ts",
+            'external_id': "1",
+            'username': "test",
+            'name': "Monster of lake"
+        }
+        return_sso_url = tornado.escape.url_unescape(sso_data['return_sso_url'])
+
+        return_payload = base64.encodebytes(urllib.parse.urlencode(params).encode())
+        h = hmac.new(secret.encode(), return_payload, digestmod=hashlib.sha256)
+        query_string = urllib.parse.urlencode(
+            {'sso': return_payload, 'sig': h.hexdigest()})
+        return_path = '%s?%s' % (return_sso_url, query_string)
+        #self.print(tornado.escape.url_unescape(sso_data['return_sso_url']))
+        self.redirect(return_path)
+        #self.render("index.html")

@@ -1,0 +1,3 @@
+discourse:
+  sso:
+    secret: "a_secret_here"

@@ -49,6 +49,9 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
 
         self.session.set("payload", payload)
         self.session.set("secret", secret)
+        errors = {}
+        if self.session.has('login_errors'):
+            errors = self.session.get('login_errors')
 
         sso_data = discourse.get_sso_data(payload)
 
@@ -68,4 +71,34 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
         return_path = '%s?%s' % (return_sso_url, query_string)
         #self.print(tornado.escape.url_unescape(sso_data['return_sso_url']))
         #self.redirect(return_path)
-        self.render("index.html", ddosso_conf=self.component.conf)
+        self.render("index.html", ddosso_conf=self.component.conf,
+                    errors=errors)
+
+    def post(self):
+        username = self.get_argument('username')
+        password = self.get_argument('password')
+        errors = {}
+
+        if username == "":
+            errors['username'] = "Please inform the username"
+        if password == "":
+            errors['password'] = "Please inform the password"
+
+        self.session.delete('login_errors')
+
+        if errors:
+            self.session.set('login_errors', errors)
+            self.redirect("login")
+
+
+class LoginHandler(firenado.tornadoweb.TornadoHandler):
+
+    USERNAME = "test"
+    PASSWORD = "test"  # noqa
+
+    def get(self):
+        errors = {}
+        if self.session.has('login_errors'):
+            errors = self.session.get('login_errors')
+        self.render("login.html", errors=errors)
+

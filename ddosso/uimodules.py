@@ -14,21 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import handlers
-from . import uimodules
-import firenado.tornadoweb
+import tornado.web
 
 
-class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
+class LoginErrorMessage(tornado.web.UIModule):
 
-    def get_handlers(self):
-        return [
-            (r'/', handlers.IndexHandler),
-            (r'/sso_login', handlers.IndexHandler),
-        ]
+    def render(self, key):
 
-    def get_ui_modules(self):
-        return uimodules
-
-    def get_config_file(self):
-        return "ddosso"
+        if self.handler.session.has('login_errors'):
+            errors = self.handler.session.get('login_errors')
+            if key in errors:
+                template = "ddosso:uimodules/login_error_message.html"
+                return self.render_string(template, message=errors[key])
+        return ""

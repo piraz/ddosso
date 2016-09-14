@@ -1,7 +1,7 @@
 import urllib.parse
 from hashlib import sha256
 import hmac
-from base64 import b64decode, b64encode, decodebytes
+from base64 import b64decode, b64encode, decodebytes, encodebytes
 
 
 def sso_validate(payload, signature, secret):
@@ -11,12 +11,6 @@ def sso_validate(payload, signature, secret):
         payload.encode('utf-8'),
         sha256
     ).hexdigest()
-    print("\n\nDiscourseSSO***************************************")
-    print(payload)
-    print(signature)
-    print(computed_sig)
-    print(hmac.compare_digest(computed_sig, signature))
-    print("***************************************************\n\n")
     return hmac.compare_digest(computed_sig, signature)
 
 

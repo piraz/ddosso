@@ -47,14 +47,17 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
             raise MissingArgumentError("Invalid payload. Please contact "
                                        "support if this problem persists.")
 
+        self.session.set("payload", payload)
+        self.session.set("secret", secret)
+
         sso_data = discourse.get_sso_data(payload)
 
         params = {
             'nonce': sso_data['nonce'],
-            'email': "test@test.ts",
-            'external_id': "1",
-            'username': "test",
-            'name': "Monster of lake"
+            'email': "test1@test.ts",
+            'external_id': "1ab",
+            'username': "test1",
+            'name': "Monster1 of lake"
         }
         return_sso_url = tornado.escape.url_unescape(sso_data['return_sso_url'])
 
@@ -64,5 +67,5 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
             {'sso': return_payload, 'sig': h.hexdigest()})
         return_path = '%s?%s' % (return_sso_url, query_string)
         #self.print(tornado.escape.url_unescape(sso_data['return_sso_url']))
-        self.redirect(return_path)
-        #self.render("index.html")
+        #self.redirect(return_path)
+        self.render("index.html", ddosso_conf=self.component.conf)

@@ -1,3 +1,14 @@
+oauth:
+  facebook:
+    enabled: false
+  google:
+    enabled: false
+  twitter:
+    enabled: false
+
 discourse:
   sso:
     secret: "a_secret_here"
+
+diaspora:
+  url: "https://my.pod.url"

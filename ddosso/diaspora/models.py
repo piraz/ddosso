@@ -904,7 +904,7 @@ class UserBase(Base):
     __tablename__ = 'users'
 
     id = Column('id', Integer(), primary_key=True)
-    user_name = Column('username', String(255), nullable=True)
+    username = Column('username', String(255), nullable=True)
     serialized_private_key = Column('serialized_private_key', Text,
                                     nullable=True)
     getting_started = Column('getting_started', Boolean(),
@@ -975,7 +975,7 @@ Index('idx_users_authentication_token', UserBase.authentication_token,
 Index('idx_users_invitation_service_invitation_identifier',
       UserBase.invitation_service, UserBase.invitation_identifier, unique=True,
       postgresql_using='btree')
-Index('idx_users_username', UserBase.user_name, unique=True,
+Index('idx_users_username', UserBase.username, unique=True,
       postgresql_using='btree')
 Index('idx_users_email', UserBase.email, postgresql_using='btree')
 Index('idx_users_invitation_token', UserBase.authentication_token,

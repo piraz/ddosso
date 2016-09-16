@@ -17,6 +17,16 @@
 import tornado.web
 
 
+class PrintIfError(tornado.web.UIModule):
+
+    def render(self, key, code):
+        if self.handler.session.has('login_errors'):
+            errors = self.handler.session.get('login_errors')
+            if key in errors:
+                return code
+        return ""
+
+
 class LoginErrorMessage(tornado.web.UIModule):
 
     def render(self, key):

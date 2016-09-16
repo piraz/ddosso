@@ -6,11 +6,11 @@ oauth:
   twitter:
     enabled: false
 
-discourse:
-  sso:
-    secret: "a_secret_here"
-
 diaspora:
   url: "https://my.pod.url"
   password:
     pepper: "--peper--here--"
+
+discourse:
+  sso:
+    secret: "a_secret_here"

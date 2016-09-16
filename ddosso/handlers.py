@@ -51,26 +51,6 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
         self.session.set("payload", payload)
         self.session.set("signature", signature)
         self.session.set("goto", "discourse")
-        errors = {}
-        if self.session.has('login_errors'):
-            errors = self.session.get('login_errors')
-
-        sso_data = discourse.get_sso_data(payload)
-
-        params = {
-            'nonce': sso_data['nonce'],
-            'email': "test1@test.ts",
-            'external_id': "1ab",
-            'username': "test1",
-            'name': "Monster1 of lake"
-        }
-        return_sso_url = tornado.escape.url_unescape(sso_data['return_sso_url'])
-
-        return_payload = base64.encodebytes(urllib.parse.urlencode(params).encode())
-        h = hmac.new(secret.encode(), return_payload, digestmod=hashlib.sha256)
-        query_string = urllib.parse.urlencode(
-            {'sso': return_payload, 'sig': h.hexdigest()})
-        return_path = '%s?%s' % (return_sso_url, query_string)
         #self.print(tornado.escape.url_unescape(sso_data['return_sso_url']))
         self.redirect("login")
 
@@ -101,11 +81,34 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
             errors['password'] = "Please inform the password"
 
         self.session.delete('login_errors')
-
+        user = None
         if not errors:
-            if not self.login_service.is_valid(username, password):
+            user = self.login_service.is_valid(username, password)
+            if not user:
                 errors['fail'] = "Invalid login"
 
         if errors:
             self.session.set('login_errors', errors)
             self.redirect("login")
+            return
+
+        sso_data = discourse.get_sso_data(self.session.get("payload"))
+        params = {
+            'nonce': sso_data['nonce'],
+            'email': user.email,
+            'external_id': user.id,
+            'username': user.username,
+            'name': None
+        }
+
+        secret = self.component.conf['discourse']['sso']['secret']
+        return_sso_url = tornado.escape.url_unescape(
+            sso_data['return_sso_url'])
+        return_payload = base64.encodebytes(
+            urllib.parse.urlencode(params).encode())
+        h = hmac.new(secret.encode(), return_payload, digestmod=hashlib.sha256)
+        query_string = urllib.parse.urlencode(
+            {'sso': return_payload, 'sig': h.hexdigest()})
+        return_path = '%s?%s' % (return_sso_url, query_string)
+
+        self.redirect(return_path)

@@ -15,8 +15,11 @@
 # limitations under the License.
 
 from firenado import service
+from firenado.config import load_yaml_config_file
 from .diaspora.models import UserBase
+from passlib.hash import bcrypt
 import datetime
+import os
 
 
 def password_digest(pass_phrase):
@@ -33,6 +36,16 @@ class UserService(service.FirenadoService):
         return db_session.query(UserBase).filter(
             UserBase.username == username).one_or_none()
         db_session.close()
+
+    def is_password_valid(self, challenge, encrypted_password):
+        return bcrypt.verify(
+            self.get_peppered_password(challenge), encrypted_password)
+
+    def get_peppered_password(self, password):
+        ddosso_conf = load_yaml_config_file(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'conf', 'ddosso.yml'))
+        return '%s%s' % (password, ddosso_conf['diaspora']['password']['pepper'])
 
 
 class LoginService(service.FirenadoService):
@@ -54,8 +67,19 @@ class LoginService(service.FirenadoService):
 
         """
         user = self.user_service.by_username(username)
-        print(user)
+        user_data = {
+            "id": 0,
+            "username": None,
+            "email": None,
+            "guid": None,
+            "name": None,
+        }
         if user:
-            if user.encrypted_password == password_digest(password):
-                return True
+            if self.user_service.is_password_valid(password,
+                    user.encrypted_password):
+                user_data['id'] = user.id
+                user_data['username'] = user.username
+                user_data['email'] = user.email
+                user_data['id'] = user.id
+                return user
         return False

@@ -25,6 +25,7 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
         return [
             (r'/', handlers.IndexHandler),
             (r'/sso_login', handlers.IndexHandler),
+            (r'/login', handlers.LoginHandler),
         ]
 
     def get_ui_modules(self):

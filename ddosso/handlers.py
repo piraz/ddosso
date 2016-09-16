@@ -24,7 +24,8 @@ import base64
 import urllib.parse
 import hmac
 import hashlib
-
+import datetime
+from firenado import service
 
 class IndexHandler(firenado.tornadoweb.TornadoHandler):
 
@@ -48,7 +49,8 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
                                        "support if this problem persists.")
 
         self.session.set("payload", payload)
-        self.session.set("secret", secret)
+        self.session.set("signature", signature)
+        self.session.set("goto", "discourse")
         errors = {}
         if self.session.has('login_errors'):
             errors = self.session.get('login_errors')
@@ -70,10 +72,24 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
             {'sso': return_payload, 'sig': h.hexdigest()})
         return_path = '%s?%s' % (return_sso_url, query_string)
         #self.print(tornado.escape.url_unescape(sso_data['return_sso_url']))
-        #self.redirect(return_path)
+        self.redirect("login")
+
+
+class LoginHandler(firenado.tornadoweb.TornadoHandler):
+
+
+    def get(self):
+        errors = {}
+        if self.session.has('login_errors'):
+            errors = self.session.get('login_errors')
+
+        #print(self.session.get("payload"))
+        #print(self.session.get("signature"))
+
         self.render("index.html", ddosso_conf=self.component.conf,
                     errors=errors)
 
+    @service.served_by("ddosso.services.LoginService")
     def post(self):
         username = self.get_argument('username')
         password = self.get_argument('password')
@@ -86,19 +102,10 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
 
         self.session.delete('login_errors')
 
+        if not errors:
+            if not self.login_service.is_valid(username, password):
+                errors['fail'] = "Invalid login"
+
         if errors:
             self.session.set('login_errors', errors)
             self.redirect("login")
-
-
-class LoginHandler(firenado.tornadoweb.TornadoHandler):
-
-    USERNAME = "test"
-    PASSWORD = "test"  # noqa
-
-    def get(self):
-        errors = {}
-        if self.session.has('login_errors'):
-            errors = self.session.get('login_errors')
-        self.render("login.html", errors=errors)
-

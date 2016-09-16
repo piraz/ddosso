@@ -14,3 +14,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from firenado import service
+from .diaspora.models import UserBase
+import datetime
+
+
+def password_digest(pass_phrase):
+    import hashlib
+    m = hashlib.md5()
+    m.update(pass_phrase.encode('utf-8'))
+    return m.hexdigest()
+
+
+class UserService(service.FirenadoService):
+
+    def by_username(self, username):
+        db_session = self.get_data_source('diaspora').session
+        return db_session.query(UserBase).filter(
+            UserBase.username == username).one_or_none()
+        db_session.close()
+
+
+class LoginService(service.FirenadoService):
+
+    def __init__(self, handler, data_source=None):
+        service.FirenadoService.__init__(self, handler, data_source)
+
+    @service.served_by("ddosso.services.UserService")
+    def is_valid(self, username, password):
+        """ Checks if challenge username and password matches
+        username and password defined on the service constructor..
+
+        Args:
+            username: A challenge username
+            password: A challenge password
+
+        Returns: Returns true if challenge username and password matches
+        username and password defined on the service constructor.
+
+        """
+        user = self.user_service.by_username(username)
+        print(user)
+        if user:
+            if user.encrypted_password == password_digest(password):
+                return True
+        return False

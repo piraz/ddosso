@@ -12,3 +12,5 @@ discourse:
 
 diaspora:
   url: "https://my.pod.url"
+  password:
+    pepper: "--peper--here--"

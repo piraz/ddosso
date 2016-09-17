@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Firenado
+firenado.yml
+ddosso.yml
+
+# PyCharm
+.idea

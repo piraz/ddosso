@@ -1,0 +1,16 @@
+oauth:
+  facebook:
+    enabled: false
+  google:
+    enabled: false
+  twitter:
+    enabled: false
+
+diaspora:
+  url: "https://my.pod.url"
+  password:
+    pepper: "--peper--here--"
+
+discourse:
+  sso:
+    secret: "a_secret_here"

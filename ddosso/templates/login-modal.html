@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SSO Login/Register Modal</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div id="login-modal" class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        <h4 class="modal-title-signup">Acessar conta</h4>
+                        <h4 class="modal-title-signin hide">Criar nova conta</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="login-box signup">
+                            <div class="box-body">
+                                <div class="section-social-buttons">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <div class="row">
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social google">
+                                                        <i class="fa fa-google-plus"></i> com Google
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social facebook">
+                                                        <i class="fa fa-facebook"></i> com Facebook
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social twitter">
+                                                        <i class="fa fa-twitter"></i> com Twitter
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social yahoo">
+                                                        <i class="fa fa-yahoo"></i> com Yahoo
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social github">
+                                                        <i class="fa fa-github"></i> com GitHub
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social linkedin">
+                                                        <i class="fa fa-linkedin"></i> com LinkeIn
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-form">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <div class="login-form">
+                                                <form class="form-horizontal">
+                                                    <div class="form-group">
+                                                        <label for="login-user" class="col-sm-2 control-label">Usuário</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="login-user" type="text" class="form-control" placeholder="Usuário no TheRealTalk">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="login-pwd" class="col-sm-2 control-label">Senha</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="login-pwd" type="password" class="form-control" placeholder="Senha no TheRealTalk">
+                                                            <a id="forgot-pwd" href="#">Esqueci minha senha</a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group form-btns">
+                                                        <div class="col-sm-offset-2 col-sm-10">
+                                                            <button class="btn btn-login">Entrar</button>
+                                                            <a href="#" class="link-signin">Criar uma conta</a>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="login-box signin hide">
+                            <div class="box-body">
+                                <div class="section-social-buttons">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <div class="row">
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social google">
+                                                        <i class="fa fa-google-plus"></i> com Google
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social facebook">
+                                                        <i class="fa fa-facebook"></i> com Facebook
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social twitter">
+                                                        <i class="fa fa-twitter"></i> com Twitter
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social yahoo">
+                                                        <i class="fa fa-yahoo"></i> com Yahoo
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social github">
+                                                        <i class="fa fa-github"></i> com GitHub
+                                                    </button>
+                                                </div>
+                                                <div class="col-sm-6 col-lg-4">
+                                                    <button class="btn btn-block btn-social linkedin">
+                                                        <i class="fa fa-linkedin"></i> com LinkeIn
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-form">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <div class="login-form">
+                                                <form class="form-horizontal">
+                                                    <div class="form-group">
+                                                        <label for="user-email" class="col-sm-2 control-label">E-Mail</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="user-email" type="text" class="form-control" placeholder="Informe seu email" autofocus>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="reg-user" class="col-sm-2 control-label">Usuário</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="reg-user" type="text" class="form-control" placeholder="Usuário no TheRealTalk" autofocus>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="reg-pwd" class="col-sm-2 control-label">Senha</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="reg-pwd" type="password" class="form-control" placeholder="Senha no TheRealTalk">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="reg-pwd-confirm" class="col-sm-2 control-label">Confirmar Senha</label>
+                                                        <div class="col-sm-10">
+                                                            <input id="reg-pwd-confirm" type="password" class="form-control" placeholder="Confirme a senha do TheRealTalk">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group form-btns">
+                                                        <div class="col-sm-offset-2 col-sm-10">
+                                                            <button class="btn btn-login">Criar Nova Conta</button>
+                                                            <a href="#" class="link-signup">Entrar com uma conta existente</a>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-lg" data-toggle="modal" data-target="#login-modal">Open Modal</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        $(function() {
+            $('.link-signin').click(function(e) {
+                $('#login-modal .modal-title-signup').addClass('hide');
+                $('#login-modal .modal-title-signin').removeClass('hide');
+                $('.login-box.signup').addClass('hide');
+                $('.login-box.signin').removeClass('hide');
+            });
+
+            $('.link-signup').click(function(e) {
+                $('#login-modal .modal-title-signin').addClass('hide');
+                $('#login-modal .modal-title-signup').removeClass('hide');
+                $('.login-box.signin').addClass('hide');
+                $('.login-box.signup').removeClass('hide');
+            });
+        });
+    </script>
+</body>
+
+</html>

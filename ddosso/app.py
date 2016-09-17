@@ -22,10 +22,11 @@ import firenado.tornadoweb
 class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
 
     def get_handlers(self):
+        root = self.conf['root']
         return [
-            (r'/', handlers.IndexHandler),
-            (r'/sso_login', handlers.IndexHandler),
-            (r'/login', handlers.LoginHandler),
+            (r"/", handlers.IndexHandler),
+            (r"%ssso_login" % root, handlers.IndexHandler),
+            (r"%slogin" % root, handlers.LoginHandler),
         ]
 
     def get_ui_modules(self):

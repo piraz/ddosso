@@ -1,3 +1,4 @@
+root: "/"
 oauth:
   facebook:
     enabled: false

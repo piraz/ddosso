@@ -95,10 +95,11 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
         sso_data = discourse.get_sso_data(self.session.get("payload"))
         params = {
             'nonce': sso_data['nonce'],
-            'email': user.email,
-            'external_id': user.id,
-            'username': user.username,
-            'name': None
+            'email': user['email'],
+            'external_id': user['guid'],
+            'username': user['username'],
+            'name': user['name'],
+            'avatar_url': user['avatar']
         }
 
         secret = self.component.conf['discourse']['sso']['secret']

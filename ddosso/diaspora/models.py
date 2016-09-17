@@ -22,7 +22,7 @@ from sqlalchemy.dialects.postgres import TIMESTAMP
 
 from firenado.util.sqlalchemy_util import Base
 
-
+#TODO: Move this away. This part is part of the poship project.
 class AccountDeletionBase(Base):
 
     __tablename__ = 'account_deletions'

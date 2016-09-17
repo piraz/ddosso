@@ -16,7 +16,7 @@
 
 from firenado import service
 from firenado.config import load_yaml_config_file
-from .diaspora.models import UserBase
+from .diaspora.models import PersonBase, ProfileBase, UserBase
 from passlib.hash import bcrypt
 import datetime
 import os
@@ -48,11 +48,31 @@ class UserService(service.FirenadoService):
         return '%s%s' % (password, ddosso_conf['diaspora']['password']['pepper'])
 
 
+class PersonService(service.FirenadoService):
+
+    def by_user(self, user):
+        db_session = self.get_data_source('diaspora').session
+        return db_session.query(PersonBase).filter(
+            PersonBase.owner_id == user.id).one_or_none()
+        db_session.close()
+
+
+class ProfileService(service.FirenadoService):
+
+    def by_person(self, person):
+        db_session = self.get_data_source('diaspora').session
+        return db_session.query(ProfileBase).filter(
+            ProfileBase.person_id == person.id).one_or_none()
+        db_session.close()
+
+
 class LoginService(service.FirenadoService):
 
     def __init__(self, handler, data_source=None):
         service.FirenadoService.__init__(self, handler, data_source)
 
+    @service.served_by("ddosso.services.PersonService")
+    @service.served_by("ddosso.services.ProfileService")
     @service.served_by("ddosso.services.UserService")
     def is_valid(self, username, password):
         """ Checks if challenge username and password matches
@@ -67,12 +87,27 @@ class LoginService(service.FirenadoService):
 
         """
         user = self.user_service.by_username(username)
+        people = self.person_service.by_user(user)
+        profile = self.profile_service.by_person(people)
+
+        user_name = None
+        if profile.full_name != "":
+            user_name = profile.full_name
+        elif profile.first_name != "":
+            if profile.last_name != "":
+                user_name = "%s %s" % (profile.first_name, profile.last_name)
+            else:
+                user_name = profile.first_name
+        else:
+            user_name = user.username
+
         user_data = {
             "id": 0,
-            "username": None,
-            "email": None,
-            "guid": None,
-            "name": None,
+            "username": "",
+            "email": "",
+            "guid": "",
+            "name": "",
+            "avatar": "",
         }
         if user:
             if self.user_service.is_password_valid(password,
@@ -80,6 +115,8 @@ class LoginService(service.FirenadoService):
                 user_data['id'] = user.id
                 user_data['username'] = user.username
                 user_data['email'] = user.email
-                user_data['id'] = user.id
-                return user
+                user_data['guid'] = people.guid
+                user_data['name'] = user_name
+                user_data['avatar'] = profile.image_url_medium
+                return user_data
         return False

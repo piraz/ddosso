@@ -23,8 +23,8 @@ from base64 import b64decode, b64encode, decodebytes, encodebytes
 def sso_validate(payload, signature, secret):
     payload = urllib.parse.unquote(payload)
     computed_sig = hmac.new(
-        secret.encode('utf-8'),
-        payload.encode('utf-8'),
+        secret.encode(),
+        payload.encode(),
         sha256
     ).hexdigest()
     return hmac.compare_digest(computed_sig, signature)
@@ -32,12 +32,12 @@ def sso_validate(payload, signature, secret):
 
 def sso_has_nounce(payload):
     payload = urllib.parse.unquote(payload)
-    decoded = decodebytes(payload.encode('utf-8')).decode('utf-8')
+    decoded = decodebytes(payload.encode()).decode()
     return 'nonce' in decoded
 
 
 def get_sso_data(payload):
-    decoded = decodebytes(payload.encode('utf-8')).decode('utf-8')
+    decoded = decodebytes(payload.encode()).decode()
     return dict(data.split("=") for data in decoded.split('&'))
 
 

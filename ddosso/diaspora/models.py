@@ -486,7 +486,6 @@ class PersonBase(Base):
 
     id = Column('id', Integer(), primary_key=True)
     guid = Column('guid', String(255), nullable=False)
-    url = Column('url', Text, nullable=False)
     diaspora_handle = Column('diaspora_handle', String(255),
                              nullable=False)
     serialized_public_key = Column('serialized_public_key', Text,
@@ -915,9 +914,6 @@ class UserBase(Base):
     email = Column('email', String(255), DefaultClause(''), nullable=False)
     encrypted_password = Column('encrypted_password', String(255),
                                 DefaultClause(''), nullable=False)
-    invitation_token = Column('invitation_token', String(60), nullable=True)
-    invitation_sent_at = Column('invitation_sent_at', TIMESTAMP(),
-                                nullable=True)
     reset_password_token = Column('reset_password_token', String(255),
                                   nullable=True)
     remember_created_at = Column('remember_created_at', TIMESTAMP(),
@@ -932,13 +928,6 @@ class UserBase(Base):
     last_sign_in_ip = Column('last_sign_in_ip', String(255), nullable=True)
     created_at = Column('created_at', TIMESTAMP(), nullable=False)
     updated_at = Column('updated_at', TIMESTAMP(), nullable=False)
-    invitation_service = Column('invitation_service', String(127),
-                                nullable=True)
-    invitation_identifier = Column('invitation_identifier', String(127),
-                                   nullable=True)
-    invitation_limit = Column('invitation_limit', Integer(), nullable=True)
-    invited_by_id = Column('invited_by_id', Integer(), nullable=True)
-    invited_by_type = Column('invited_by_type', String(255), nullable=True)
     authentication_token = Column('authentication_token', String(30),
                                   nullable=True)
     unconfirmed_email = Column('unconfirmed_email', String(255), nullable=True)
@@ -972,9 +961,6 @@ class UserBase(Base):
 
 Index('idx_users_authentication_token', UserBase.authentication_token,
       unique=True, postgresql_using='btree')
-Index('idx_users_invitation_service_invitation_identifier',
-      UserBase.invitation_service, UserBase.invitation_identifier, unique=True,
-      postgresql_using='btree')
 Index('idx_users_username', UserBase.username, unique=True,
       postgresql_using='btree')
 Index('idx_users_email', UserBase.email, postgresql_using='btree')

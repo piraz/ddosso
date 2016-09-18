@@ -47,7 +47,7 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
         if not discourse.sso_validate(payload, signature, secret):
             raise MissingArgumentError("Invalid payload. Please contact "
                                        "support if this problem persists.")
-
+        self.session.clear()
         self.session.set("payload", payload)
         self.session.set("signature", signature)
         self.session.set("goto", "discourse")
@@ -117,5 +117,4 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
         query_string = urllib.parse.urlencode(
             {'sso': return_payload, 'sig': h.hexdigest()})
         return_path = '%s?%s' % (return_sso_url, query_string)
-
         self.redirect(return_path)

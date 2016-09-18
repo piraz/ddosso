@@ -14,32 +14,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 from firenado import service
 from firenado.config import load_yaml_config_file
 from .diaspora.models import PersonBase, ProfileBase, UserBase
+import logging
 from passlib.hash import bcrypt
-import datetime
 import os
+import sys
 
-
-def password_digest(pass_phrase):
-    import hashlib
-    m = hashlib.md5()
-    m.update(pass_phrase.encode('utf-8'))
-    return m.hexdigest()
+logger = logging.getLogger(__name__)
 
 
 class UserService(service.FirenadoService):
 
-    def by_username(self, username):
-        db_session = self.get_data_source('diaspora').session
-        return db_session.query(UserBase).filter(
+    def by_username(self, username, db_session=None):
+        self_session = False
+        if db_session is None:
+            db_session = self.get_data_source('diaspora').session
+            self_session = True
+        user = db_session.query(UserBase).filter(
             UserBase.username == username).one_or_none()
-        db_session.close()
+        if self_session:
+            db_session.close()
+        return user
 
     def is_password_valid(self, challenge, encrypted_password):
         return bcrypt.verify(
             self.get_peppered_password(challenge), encrypted_password)
+
+    def set_user_seem(self, user_data, remote_ip):
+        db_session = self.get_data_source('diaspora').session
+        user = self.by_username(user_data['username'], db_session)
+        try:
+            right_now = datetime.now()
+            last_sign_in_at = user.current_sign_in_at
+            last_sign_in_ip = user.current_sign_in_ip
+
+            user.sign_in_count += 1
+            user.current_sign_in_at = right_now
+            user.last_sign_in_at = last_sign_in_at
+            user.current_sign_in_ip = remote_ip
+            user.last_sign_in_ip = last_sign_in_ip
+            user.last_seen = right_now
+            db_session.commit()
+        except:
+            db_session.rollback()
+            logger.error("Unexpected error: %s" % sys.exc_info()[0])
+        finally:
+            db_session.close()
 
     def get_peppered_password(self, password):
         ddosso_conf = load_yaml_config_file(

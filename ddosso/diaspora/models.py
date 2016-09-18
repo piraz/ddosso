@@ -928,6 +928,7 @@ class UserBase(Base):
     last_sign_in_ip = Column('last_sign_in_ip', String(255), nullable=True)
     created_at = Column('created_at', TIMESTAMP(), nullable=False)
     updated_at = Column('updated_at', TIMESTAMP(), nullable=False)
+    invited_by_id = Column('invited_by_id', Integer(), nullable=True)
     authentication_token = Column('authentication_token', String(30),
                                   nullable=True)
     unconfirmed_email = Column('unconfirmed_email', String(255), nullable=True)
@@ -945,6 +946,7 @@ class UserBase(Base):
     reset_password_sent_at = Column('reset_password_sent_at', TIMESTAMP(),
                                     nullable=True)
     last_seen = Column('last_seen', TIMESTAMP(), nullable=True)
+
     remove_after = Column('remove_after', TIMESTAMP(), nullable=True)
     export = Column('export', String(255), nullable=True)
     exported_at = Column('exported_at', TIMESTAMP(), nullable=True)
@@ -958,6 +960,8 @@ class UserBase(Base):
                                 nullable=True)
     exporting_photos = Column('exporting_photos', Boolean(),
                               DefaultClause('False'), nullable=True)
+    color_theme = Column('color_theme', String, DefaultClause(''),
+                         nullable=True)
 
 Index('idx_users_authentication_token', UserBase.authentication_token,
       unique=True, postgresql_using='btree')

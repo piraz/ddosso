@@ -24,7 +24,6 @@ import base64
 import urllib.parse
 import hmac
 import hashlib
-import datetime
 from firenado import service
 
 
@@ -71,6 +70,7 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
                     errors=errors)
 
     @service.served_by("ddosso.services.LoginService")
+    @service.served_by("ddosso.services.UserService")
     def post(self):
         username = self.get_argument('username')
         password = self.get_argument('password')
@@ -92,6 +92,9 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
             self.session.set('login_errors', errors)
             self.redirect("login")
             return
+        else:
+            self.user_service.set_user_seem(
+                user, self.request.remote_ip)
 
         sso_data = discourse.get_sso_data(self.session.get("payload"))
         params = {

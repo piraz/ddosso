@@ -93,8 +93,10 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
             self.redirect("login")
             return
         else:
-            self.user_service.set_user_seem(
-                user, self.request.remote_ip)
+            # Getting real ip from the nginx
+            x_real_ip = self.request.headers.get("X-Real-IP")
+            remote_ip = x_real_ip or self.request.remote_ip
+            self.user_service.set_user_seem(user, remote_ip)
 
         sso_data = discourse.get_sso_data(self.session.get("payload"))
         params = {

@@ -118,7 +118,7 @@ class LoginService(service.FirenadoService):
                 user_data['username'] = user.username
                 user_data['email'] = user.email
                 user_data['guid'] = people.guid
-                user_data['name'] = user_name
+                user_data['name'] = user_name.title()
                 user_data['avatar'] = profile.image_url_medium
                 return user_data
         return False

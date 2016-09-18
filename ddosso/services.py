@@ -87,29 +87,31 @@ class LoginService(service.FirenadoService):
 
         """
         user = self.user_service.by_username(username)
-        people = self.person_service.by_user(user)
-        profile = self.profile_service.by_person(people)
 
-        user_name = None
-        if profile.full_name != "":
-            user_name = profile.full_name
-        elif profile.first_name != "":
-            if profile.last_name != "":
-                user_name = "%s %s" % (profile.first_name, profile.last_name)
-            else:
-                user_name = profile.first_name
-        else:
-            user_name = user.username
-
-        user_data = {
-            "id": 0,
-            "username": "",
-            "email": "",
-            "guid": "",
-            "name": "",
-            "avatar": "",
-        }
         if user:
+            people = self.person_service.by_user(user)
+            profile = self.profile_service.by_person(people)
+
+            user_name = None
+            if profile.full_name != "":
+                user_name = profile.full_name
+            elif profile.first_name != "":
+                if profile.last_name != "":
+                    user_name = "%s %s" % (
+                    profile.first_name, profile.last_name)
+                else:
+                    user_name = profile.first_name
+            else:
+                user_name = user.username
+
+            user_data = {
+                "id": 0,
+                "username": "",
+                "email": "",
+                "guid": "",
+                "name": "",
+                "avatar": "",
+            }
             if self.user_service.is_password_valid(password,
                     user.encrypted_password):
                 user_data['id'] = user.id

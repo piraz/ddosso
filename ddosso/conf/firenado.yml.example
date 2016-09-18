@@ -6,6 +6,8 @@ app:
         - session
         - diaspora
   pythonpath: ..
+  cookie_secret: "--a-secret--here--"
+  xsrf_cookies: true
   port: 8016
 
 data:

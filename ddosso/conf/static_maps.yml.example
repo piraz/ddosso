@@ -1,0 +1,9 @@
+maps:
+  - name: static
+    #root: .
+    handlers:
+    - name: "static"
+      handler: "{put_root_from_ddosso_here}/static/(.*)"
+      path: "static"
+      map_on_path: false
+      name_on_path: false

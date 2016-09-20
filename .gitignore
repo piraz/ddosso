@@ -94,6 +94,7 @@ ENV/
 # Firenado
 firenado.yml
 ddosso.yml
+static_maps.yml
 
 # PyCharm
 .idea

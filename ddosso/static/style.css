@@ -2,8 +2,12 @@
 	margin-top: 0;
 }
 
-.login-box {
-	margin-top: 60px;
+.login-logo {
+	margin-top: 30px;
+}
+
+.login-logo img {
+	max-height: 150px;
 }
 
 .login-box button, .login-box input {
@@ -63,23 +67,45 @@
 
 .login-box .section-form #forgot-pwd:hover {
 	text-decoration: none;
+	color: #dd4b39;
 }
 
 .login-box .section-form .btn-login {
 	padding: 10px 35px;
     margin-right: 15px;
+    background-color: #dd4b39;
+    color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+.login-box .section-form .btn-login:hover {
+	background-color: #b23629;
 }
 
 .login-box .section-form .link-register {
 	color: #777;
+	transition: all 0.2s ease-in-out;
 }
 
-.login-box .section-form .link-register:hover {
+.login-box .section-form .link-register:hover, .login-box .section-form .link-register:focus {
 	text-decoration: none;
+	color: #dd4b39;
 }
 
 .login-box .section-form .form-btns {
 	border-top: 1px solid #ddd;
 	padding-top: 15px;
 	margin-bottom: 0;
+}
+
+.login-box .section-form .login-form input:focus {
+	border-color: rgba(221, 75, 57, 0.75);
+	box-shadow: none;
+	-webkit-box-shadow: none;
+}
+
+@media(max-width: 768px) {
+	.login-box .section-form .form-btns {
+		text-align: center;
+	}
 }

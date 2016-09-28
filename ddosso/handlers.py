@@ -63,11 +63,12 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
         if self.session.has('login_errors'):
             errors = self.session.get('login_errors')
 
+        ddosso_logo = self.component.conf['logo']
         #print(self.session.get("payload"))
         #print(self.session.get("signature"))
 
         self.render("index.html", ddosso_conf=self.component.conf,
-                    errors=errors)
+                    ddosso_logo=ddosso_logo, errors=errors)
 
     @service.served_by("ddosso.services.LoginService")
     @service.served_by("ddosso.services.UserService")
@@ -96,7 +97,7 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
             # Getting real ip from the nginx
             x_real_ip = self.request.headers.get("X-Real-IP")
             remote_ip = x_real_ip or self.request.remote_ip
-            self.user_service.set_user_seem(user, remote_ip)
+            #self.user_service.set_user_seem(user, remote_ip)
 
         sso_data = discourse.get_sso_data(self.session.get("payload"))
         params = {

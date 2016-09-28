@@ -1,4 +1,5 @@
 root: "/"
+logo: "http://placehold.it/300x300"
 oauth:
   facebook:
     enabled: false

@@ -50,6 +50,7 @@ class GoogleHandlerMixin:
             return None
         return tornado.escape.json_decode(user_json)
 
+
 class IndexHandler(firenado.tornadoweb.TornadoHandler):
 
     def get(self):
@@ -62,7 +63,20 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler):
                     ddosso_logo=ddosso_logo, errors=errors)
 
 
-class GoogleSSOHandler(GoogleHandlerMixin, firenado.tornadoweb.TornadoHandler):
+class SignupHandler(firenado.tornadoweb.TornadoHandler):
+
+    def get(self):
+        errors = None
+        if self.session.has('errors'):
+            errors = self.session.get('errors')
+            self.session.delete('errors')
+        ddosso_logo = self.component.conf['logo']
+        self.render("sign_up.html", ddosso_conf=self.component.conf,
+                    ddosso_logo=ddosso_logo, errors=errors)
+
+
+class GoogleSignupHandler(GoogleHandlerMixin,
+                          firenado.tornadoweb.TornadoHandler):
 
     @firenado.security.authenticated("google")
     @service.served_by("ddosso.services.UserService")

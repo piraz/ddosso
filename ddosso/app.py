@@ -31,8 +31,9 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
         root = self.conf['root']
         return [
             (r"%s" % rooted_path(root, "/"), handlers.IndexHandler),
+            (r"%s" % rooted_path(root, "/sign_up"), handlers.SignupHandler),
             (r"%s" % rooted_path(root, "google/sign_up"),
-             handlers.GoogleSSOHandler),
+             handlers.GoogleSignupHandler),
             (r"%s" % rooted_path(root, "google/oauth2callback"),
              handlers.GoogleLoginHandler),
             (r"%s" % rooted_path(root, "discourse/sign_on"),

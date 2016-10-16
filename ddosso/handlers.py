@@ -180,7 +180,7 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
         #print(self.session.get("payload"))
         #print(self.session.get("signature"))
 
-        self.render("login.html", ddosso_conf=self.component.conf,
+        self.render("discourse/login.html", ddosso_conf=self.component.conf,
                     ddosso_logo=ddosso_logo, errors=errors)
 
     @service.served_by("ddosso.services.LoginService")

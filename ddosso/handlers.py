@@ -18,9 +18,10 @@
 
 from . import discourse
 from .forms import SignupForm
-from .util import rooted_path
+from .util import captcha_data, rooted_path
 import base64
 
+import firenado.conf
 import firenado.tornadoweb
 import firenado.security
 from firenado import service
@@ -28,13 +29,16 @@ from firenado import service
 import hashlib
 import hmac
 
-from tornado.auth import GoogleOAuth2Mixin
+import io
+import os
 
+from tornado.auth import GoogleOAuth2Mixin
 import tornado.escape
 from tornado.web import HTTPError, MissingArgumentError
 from tornado import gen
 
 import urllib.parse
+
 
 
 class RootedHandlerMixin:
@@ -254,3 +258,15 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
             {'sso': return_payload, 'sig': h.hexdigest()})
         return_path = '%s?%s' % (return_sso_url, query_string)
         self.redirect(return_path)
+
+
+class CaptchaHandler(firenado.tornadoweb.TornadoHandler):
+
+    def get(self, name):
+        import base64
+        data = {
+            "id": name,
+            "captcha": "data:image/png;base64,%s" %
+                       base64.b64encode(captcha_data(self, name)).decode()
+        }
+        self.write(data)

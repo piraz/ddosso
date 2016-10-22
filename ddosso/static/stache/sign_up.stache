@@ -38,6 +38,17 @@
                         {{/hasPasswordConfError}}
                     </div>
                 </div>
+                <div class="form-group {{#hasCaptchaError}}has-error{{/hasCaptchaError}}">
+                    <div class="col-sm-4">
+                        <img src="{{{captchaData}}}">
+                    </div>
+                    <div class="col-sm-8">
+                        <input name="captch" id="signup_captcha" type="text" class="form-control" placeholder="Infome o valor da imagem.">
+                        {{#hasCaptchaError}}
+                        <span class="help-block">{{{passwordConfError}}}</span>
+                        {{/hasCaptchaError}}
+                    </div>
+                </div>
                 <div class="form-group form-btns">
                     <div class="col-sm-offset-2 col-sm-10">
                         <button id="login_button" class="btn btn-login">Criar Nova Conta</button>

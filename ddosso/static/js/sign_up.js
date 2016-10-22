@@ -1,12 +1,16 @@
 $(document).ready(function () {
-    SignupModel = can.Model({
-        create : "POST " + document.location.pathname
+    var location_root = document.location.pathname.replace("sign_up", "");
+    console.debug( "GET " + location_root + "captcha/{id}");
+    SignupModel = can.Model.extend({
+        findOne: "GET " + location_root + "captcha/{id}",
+        create : "POST " + location_root + "sign_up"
     },{});
 
-    can.Component.extend({
+    var SignupForm = can.Component.extend({
         tag: "sign-up-form",
         template: can.view("#sign_up_form"),
         viewModel:{
+            captchaData: "",
             error: false,
             postContainerFocus: false,
             errorMessage: "",
@@ -20,12 +24,11 @@ $(document).ready(function () {
             usernameError: "",
             blurTimeout: null,
             signup: new SignupModel(),
-            blurControls: function() {
+            refreshCaptcha: function() {
                 var viewModel = this;
-                var doBlur = function() {
-                    viewModel.attr("postContainerFocus", false);
-                }
-                this.blurTimeout = window.setTimeout(doBlur, 100);
+                SignupModel.findOne({id: "sign_up"}, function(response) {
+                    viewModel.attr("captchaData", response.captcha);
+                });
             },
             processLogin: function(login) {
                 window.location = login.next_url;
@@ -60,9 +63,19 @@ $(document).ready(function () {
                     }.bind(this)
                 );
                 this.viewModel.attr('errorMessage', errorMessage);
+                this.viewModel.refreshCaptcha();
             }
         },
+        init: function() {
+            this.on(document, 'ready', function (ev) {
+
+            });
+            /**/
+        },
         events: {
+            "inserted": function () {
+                this.viewModel.refreshCaptcha();
+            },
             "#login_button click": function() {
                 //this.viewModel.attr('error', false);
                 //this.viewModel.attr('errorMessage', '');
@@ -89,5 +102,8 @@ $(document).ready(function () {
             }
         }
     });
+
+    can.extend(SignupForm.prototype, can.event);
+
     $("#ddosso_sign_up_form").html(can.stache("<sign-up-form></sign-up-form>")());
 });

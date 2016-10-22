@@ -99,14 +99,17 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
         self.render("sign_up.html", ddosso_conf=self.component.conf,
                     ddosso_logo=ddosso_logo, errors=errors)
 
+    @service.served_by("ddosso.services.AccountService")
     def post(self):
         error_data = {'errors': {}}
         form = SignupForm(self.request.arguments, handler=self)
         if form.validate():
             self.set_status(200)
-            data = {'id': "abcd1234",
-                    'next_url': self.get_rooted_path("profile")}
-            self.write(data)
+            user = self.account_service.register(form)
+            print(user)
+            #data = {'id': "abcd1234",
+                    #'next_url': self.get_rooted_path("profile")}
+            #self.write(data)
         else:
             self.set_status(403)
             error_data['errors'].update(form.errors)

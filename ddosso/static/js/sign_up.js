@@ -46,14 +46,16 @@ $(document).ready(function () {
         },
         events: {
             "#login_button click": function() {
-                this.viewModel.attr('error', false);
-                this.viewModel.attr('errorMessage', '');
-                this.viewModel.attr('userNameError', false);
-                this.viewModel.attr('passwordError', false);
-                var form = this.element.find( 'form' );
+                //this.viewModel.attr('error', false);
+                //this.viewModel.attr('errorMessage', '');
+                //this.viewModel.attr('userNameError', false);
+                //this.viewModel.attr('passwordError', false);
+
+                var form = this.element.find('form');
+                //console.log(form.serialize());
                 var values = can.deparam(form.serialize());
                 var parameters = [];
-                console.log(values);
+                console.debug(values);
                 //values._xsrf = getCookie('_xsrf');
                 /*this.viewModel.login.attr(values).save(
                     this.viewModel.processLogin.bind(this),

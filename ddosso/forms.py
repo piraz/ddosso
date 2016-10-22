@@ -21,12 +21,14 @@ from wtforms.fields import StringField, PasswordField
 from wtforms.validators import DataRequired, Email
 from wtforms_tornado import Form
 
-SIGNUP_FORM_EMAIL_INVALID = "Informe um email válido"
+SIGNUP_FORM_EMAIL_INVALID = "Informe um email válido."
+SIGNUP_FORM_EMAIL_EXISTS = "Este email já está cadastrado."
 SIGNUP_FORM_PASSWORD_MISSING = "Informe uma senha."
 SIGNUP_FORM_PASSWORD_CONF_MISSING = "Confirme a senha."
 SIGNUP_FORM_PASSWORD_CONF_NOT_MATCH = ("A confirmação da senha não é igual a "
                                        "senha.")
 SIGNUP_FORM_USERNAME_MISSING = "Informe o nome do usuário."
+SIGNUP_FORM_USERNAME_EXISTS = "Este usuário já está cadastrado."
 
 
 class SignupForm(Form):
@@ -47,6 +49,14 @@ class SignupForm(Form):
 
     @service.served_by("ddosso.services.UserService")
     def validate_email(self, field):
+        if self.user_service.by_email(field.data):
+            raise ValidationError(SIGNUP_FORM_EMAIL_EXISTS)
+        print(self.user_service.by_email(field.data))
+
+    @service.served_by("ddosso.services.UserService")
+    def validate_username(self, field):
+        if self.user_service.by_username(field.data):
+            raise ValidationError(SIGNUP_FORM_USERNAME_EXISTS)
         print(self.user_service.by_email(field.data))
 
     def validate_passwordConf(self, field):

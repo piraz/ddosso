@@ -1,6 +1,6 @@
 $(document).ready(function () {
-    SignUpModel = can.Model({
-        create : "POST /sign_up"
+    SignupModel = can.Model({
+        create : "POST " + document.location.pathname
     },{});
 
     can.Component.extend({
@@ -9,11 +9,17 @@ $(document).ready(function () {
         viewModel:{
             error: false,
             postContainerFocus: false,
-            errorMessage: '',
-            userNameError: false,
-            passwordError: false,
+            errorMessage: "",
+            hasEmailError: false,
+            hasPasswordConfError: false,
+            hasPasswordError: false,
+            hasUsernameError: false,
+            emailError: "",
+            passwordError: "",
+            passwordConfError: "",
+            usernameError: "",
             blurTimeout: null,
-            stream_post: new SignUpModel(),
+            signup: new SignupModel(),
             blurControls: function() {
                 var viewModel = this;
                 var doBlur = function() {
@@ -25,12 +31,24 @@ $(document).ready(function () {
                 window.location = login.next_url;
             },
             processLoginError: function(response) {
+                var errors = response.responseJSON.errors;
                 var errorMessage = '';
-                if(response.responseJSON.errors.hasOwnProperty('username')) {
-                    this.viewModel.attr('userNameError', true);
+                if(errors.hasOwnProperty('email')) {
+                    this.viewModel.attr("hasEmailError", true);
+                    this.viewModel.attr("emailError", errors.email);
                 }
-                if(response.responseJSON.errors.hasOwnProperty('password')) {
-                    this.viewModel.attr('passwordError', true);
+                if(errors.hasOwnProperty('password')) {
+                    this.viewModel.attr("hasPasswordError", true);
+                    this.viewModel.attr("passwordError", errors.password);
+                }
+                if(errors.hasOwnProperty('passwordConf')) {
+                    this.viewModel.attr("hasPasswordConfError", true);
+                    this.viewModel.attr("passwordConfError",
+                        errors.passwordConf);
+                }
+                if(errors.hasOwnProperty('username')) {
+                    this.viewModel.attr("hasUsernameError", true);
+                    this.viewModel.attr("usernameError", errors.username);
                 }
                 var errors = new can.Map(response.responseJSON.errors);
                 errors.each(
@@ -48,19 +66,23 @@ $(document).ready(function () {
             "#login_button click": function() {
                 //this.viewModel.attr('error', false);
                 //this.viewModel.attr('errorMessage', '');
-                //this.viewModel.attr('userNameError', false);
-                //this.viewModel.attr('passwordError', false);
-
+                this.viewModel.attr("hasEmailError", false);
+                this.viewModel.attr("hasPasswordError", false);
+                this.viewModel.attr("hasPasswordConfError", false);
+                this.viewModel.attr("hasUsernameError", false);
+                this.viewModel.attr('emailError', "");
+                this.viewModel.attr('passwordError', "");
+                this.viewModel.attr('passwordConfError', "");
+                this.viewModel.attr("usernameError", "");
                 var form = this.element.find('form');
-                //console.log(form.serialize());
                 var values = can.deparam(form.serialize());
                 var parameters = [];
+                values._xsrf = getCookie('_xsrf');
                 console.debug(values);
-                //values._xsrf = getCookie('_xsrf');
-                /*this.viewModel.login.attr(values).save(
+                this.viewModel.signup.attr(values).save(
                     this.viewModel.processLogin.bind(this),
                     this.viewModel.processLoginError.bind(this)
-                );*/
+                );
             },
             "#login_form submit": function(event) {
                 return false;

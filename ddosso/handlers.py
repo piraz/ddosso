@@ -17,6 +17,7 @@
 # See: http://bit.ly/2cj7IRS
 
 from . import discourse
+from .forms import SignupForm
 from .util import rooted_path
 import base64
 
@@ -28,8 +29,9 @@ import hashlib
 import hmac
 
 from tornado.auth import GoogleOAuth2Mixin
+
 import tornado.escape
-from tornado.web import MissingArgumentError
+from tornado.web import HTTPError, MissingArgumentError
 from tornado import gen
 
 import urllib.parse
@@ -79,6 +81,20 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler):
         ddosso_logo = self.component.conf['logo']
         self.render("sign_up.html", ddosso_conf=self.component.conf,
                     ddosso_logo=ddosso_logo, errors=errors)
+
+    def post(self):
+        error_data = {'errors': {}}
+        form = SignupForm(self.request.arguments, handler=self)
+        if form.validate():
+            print("GOOD")
+        else:
+            self.set_status(403)
+            error_data['errors'].update(form.errors)
+            self.write(error_data)
+
+
+
+        print(error_data)
 
 
 class GoogleSignupHandler(GoogleHandlerMixin,

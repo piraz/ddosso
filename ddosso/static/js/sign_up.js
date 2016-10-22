@@ -12,12 +12,15 @@ $(document).ready(function () {
         viewModel:{
             captchaData: "",
             error: false,
+            CAPTCHA_IS_EMPTY: "Informe o valor da imagem.",
             postContainerFocus: false,
             errorMessage: "",
+            hasCaptchaError: false,
             hasEmailError: false,
             hasPasswordConfError: false,
             hasPasswordError: false,
             hasUsernameError: false,
+            captchaError: "",
             emailError: "",
             passwordError: "",
             passwordConfError: "",
@@ -34,6 +37,7 @@ $(document).ready(function () {
                 window.location = login.next_url;
             },
             processLoginError: function(response) {
+                $("#signup_captcha").val("")
                 var errors = response.responseJSON.errors;
                 var errorMessage = '';
                 if(errors.hasOwnProperty('email')) {
@@ -51,7 +55,8 @@ $(document).ready(function () {
                 }
                 if(errors.hasOwnProperty('username')) {
                     this.viewModel.attr("hasUsernameError", true);
-                    this.viewModel.attr("usernameError", errors.username);
+                    this.viewModel.attr("usernameError",
+                        this.viewModel.attr("CAPTCHA_IS_EMPTY"));
                 }
                 var errors = new can.Map(response.responseJSON.errors);
                 errors.each(
@@ -79,23 +84,33 @@ $(document).ready(function () {
             "#login_button click": function() {
                 //this.viewModel.attr('error', false);
                 //this.viewModel.attr('errorMessage', '');
-                this.viewModel.attr("hasEmailError", false);
-                this.viewModel.attr("hasPasswordError", false);
-                this.viewModel.attr("hasPasswordConfError", false);
-                this.viewModel.attr("hasUsernameError", false);
-                this.viewModel.attr('emailError', "");
-                this.viewModel.attr('passwordError', "");
-                this.viewModel.attr('passwordConfError', "");
-                this.viewModel.attr("usernameError", "");
-                var form = this.element.find('form');
-                var values = can.deparam(form.serialize());
-                var parameters = [];
-                values._xsrf = getCookie('_xsrf');
-                console.debug(values);
-                this.viewModel.signup.attr(values).save(
-                    this.viewModel.processLogin.bind(this),
-                    this.viewModel.processLoginError.bind(this)
-                );
+                this.viewModel.attr("hasCaptchaError", false);
+                this.viewModel.attr("captchaError", "");
+
+                if(!($("#signup_captcha").val())){
+                    this.viewModel.attr("hasCaptchaError", true);
+                    this.viewModel.attr("captchaError",
+                        this.viewModel.attr("CAPTCHA_IS_EMPTY"));
+                } else {
+                    this.viewModel.attr("hasEmailError", false);
+                    this.viewModel.attr("hasPasswordError", false);
+                    this.viewModel.attr("hasPasswordConfError", false);
+                    this.viewModel.attr("hasUsernameError", false);
+                    this.viewModel.attr('emailError', "");
+                    this.viewModel.attr('passwordError', "");
+                    this.viewModel.attr('passwordConfError', "");
+                    this.viewModel.attr("usernameError", "");
+
+                    var form = this.element.find('form');
+                    var values = can.deparam(form.serialize());
+                    var parameters = [];
+                    values._xsrf = getCookie('_xsrf');
+
+                    this.viewModel.signup.attr(values).save(
+                        this.viewModel.processLogin.bind(this),
+                        this.viewModel.processLoginError.bind(this)
+                    );
+                }
             },
             "#login_form submit": function(event) {
                 return false;

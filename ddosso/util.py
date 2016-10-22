@@ -23,9 +23,9 @@ def captcha_data(handler, name):
         "/usr/share/fonts/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/liberation/LiberationSerif-Regular.ttf"]
     )
-    string = random_string(5)
+    string = random_string(5).lower()
     anti_cache = random_string(22)
-    handler.session.set("captcha_string%s" % name, string)
+    handler.session.set("captcha_string_%s" % name, string)
     data = image.generate(string)
     return data.getvalue()
 

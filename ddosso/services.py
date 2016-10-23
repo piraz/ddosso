@@ -17,7 +17,7 @@
 from datetime import datetime
 from firenado import service
 from firenado.config import load_yaml_config_file
-from .diaspora.models import PersonBase, ProfileBase, UserBase
+from .diaspora.models import AspectBase, PersonBase, ProfileBase, UserBase
 import logging
 from passlib.hash import bcrypt
 import os
@@ -57,19 +57,21 @@ class UserService(service.FirenadoService):
         from firenado.util import random_string
         if not created_utc:
             created_utc = datetime.utcnow()
-
+        remote_ip = None
+        if "remote_ip" in user_data:
+            remote_ip = user_data['remote_ip']
         user = UserBase()
-        user.username = user_data['username'].data
+        user.username = user_data['username']
         # TODO: Generate the serialized private key
         user.serialized_private_key = generate_private_key()
         user.getting_started = True
         user.disable_mail = False
         # TODO: Handle language
         user.language = 'en'
-        user.email = user_data['email'].data
+        user.email = user_data['email']
         # TODO: encrypt the password
         user.encrypted_password = bcrypt.encrypt(
-            self.get_peppered_password(user_data['password'].data))
+            self.get_peppered_password(user_data['password']))
         # Not used
         user.invitation_token = None
         user.invitation_sent_at = None
@@ -77,8 +79,8 @@ class UserService(service.FirenadoService):
         user.sign_in_count = 1
         user.current_sign_in_at = created_utc
         user.last_sign_in_at = created_utc
-        user.current_sign_in_ip = None  # PUT IP HERE
-        user.last_sign_in_ip = None  # PUT IP HERE
+        user.current_sign_in_ip = remote_ip
+        user.last_sign_in_ip = remote_ip
         user.created_at = created_utc
         user.updated_at = created_utc
         user.invited_by_id = None
@@ -94,8 +96,8 @@ class UserService(service.FirenadoService):
         user.reset_password_sent_at = created_utc
         user.last_seen = None
         user.remove_after = None
-        user.export = "%s_diaspora_data_%s.json.gz" % (user_data['username'].data,
-                                                       random_string(22))
+        user.export = "%s_diaspora_data_%s.json.gz" % (
+            user_data['username'], random_string(22))
         user.exported_at = None
         user.exporting = False
         user.strip_exif = True
@@ -113,6 +115,7 @@ class UserService(service.FirenadoService):
         if commit:
             db_session.commit()
             db_session.close()
+        logger.info("Created user: %s" % user)
         return user
 
 
@@ -136,7 +139,7 @@ class UserService(service.FirenadoService):
             db_session.commit()
         except:
             db_session.rollback()
-            logger.error("Unexpected error: %s" % sys.exc_info()[0])
+            logger.info("Unexpected error: %s" % sys.exc_info()[0])
         finally:
             db_session.close()
 
@@ -158,15 +161,15 @@ class PersonService(service.FirenadoService):
     def create(self, person_data, created_utc=None, db_session=None):
         from .util import generate_public_key
         if not created_utc:
-            created_utc = datetime.datetime.utcnow()
+            created_utc = datetime.utcnow()
 
         person = PersonBase()
         # TODO: It looks like the guid should be generated based on a random
         # string. This generation based on the timestamp is not correct and
         # should be fixed.
         person.guid = str(uuid.uuid5(uuid.NAMESPACE_URL, str(created_utc)))
-        person.diaspora_handle = "%s@therealtalk.org" % person_data[
-            'user'].username
+        person.diaspora_handle = "%s@%s" % (person_data['user'].username,
+                                            person_data['pod'])
         person.serialized_public_key = generate_public_key(
             person_data['user'].serialized_private_key)
         person.owner_id = person_data['user'].id
@@ -182,8 +185,34 @@ class PersonService(service.FirenadoService):
         db_session.add(person)
         if commit:
             db_session.commit()
-
+            db_session.close()
+        logger.info("Created person: %s" % person)
         return person
+
+
+
+class AspectService(service.FirenadoService):
+
+    def create(self, aspect_data, db_session=None):
+        created_utc = datetime.utcnow()
+        aspect = AspectBase()
+        aspect.name = aspect_data['name']
+        aspect.user_id = aspect_data['user'].id
+        aspect.created_at = created_utc
+        aspect.updated_at = created_utc
+        aspect.contacts_visible = True
+        aspect.order_id = aspect_data['order_id']
+
+        commit = False
+        if not db_session:
+            db_session = self.get_data_source('diaspora').session
+            commit = True
+        db_session.add(aspect)
+        if commit:
+            db_session.commit()
+            db_session.close()
+        logger.info("Created aspect: %s" % aspect)
+        return aspect
 
 
 class ProfileService(service.FirenadoService):
@@ -203,7 +232,7 @@ class ProfileService(service.FirenadoService):
         :return:
         """
         if not created_utc:
-            created_utc = datetime.datetime.utcnow()
+            created_utc = datetime.utcnow()
 
         first_name = None
         last_name = None
@@ -240,7 +269,8 @@ class ProfileService(service.FirenadoService):
         db_session.add(profile)
         if commit:
             db_session.commit()
-
+            db_session.close()
+        logger.info("Created profile: %s" % profile)
         return profile
 
 
@@ -307,7 +337,9 @@ class AccountService(service.FirenadoService):
     @service.served_by(UserService)
     @service.served_by(PersonService)
     @service.served_by(ProfileService)
+    @service.served_by(AspectService)
     def register(self, account_data):
+        logger.info("Received valid data to create account: %s" % account_data)
         db_session = self.get_data_source(
             'diaspora').session
         created_utc = datetime.utcnow()
@@ -317,6 +349,7 @@ class AccountService(service.FirenadoService):
         db_session.commit()
         person_data = {}
         person_data['user'] = user
+        person_data['pod'] = account_data['pod']
         person = self.person_service.create(
             person_data, created_utc=created_utc, db_session=db_session)
         db_session.commit()
@@ -325,6 +358,18 @@ class AccountService(service.FirenadoService):
         profile = self.profile_service.create(
             profile_data, created_utc=created_utc, db_session=db_session)
         db_session.commit()
+
+        aspects = ["Acquaintances", "Work", "Friends", "Family"]
+        order_id = 4
+        for aspect in aspects:
+            aspect_data = {}
+            aspect_data['user'] = user
+            aspect_data['name'] = aspect
+            aspect_data['order_id'] = order_id
+            order_id -= 1
+            self.aspect_service.create(aspect_data, db_session=db_session)
+            db_session.commit()
+
         db_session.close()
         return user
 

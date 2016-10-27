@@ -30,6 +30,8 @@ import functools
 
 import hashlib
 import hmac
+import uuid
+import pika
 
 from tornado.auth import GoogleOAuth2Mixin
 import tornado.escape
@@ -89,6 +91,16 @@ class ProfileHandler(firenado.tornadoweb.TornadoHandler):
 
 
 class SigninHandler(firenado.tornadoweb.TornadoHandler):
+
+    def __init__(self, application, request, **kwargs):
+        from tornado.locks import Condition
+        super(SigninHandler, self).__init__(application, request, **kwargs)
+        self.callback_queue = None
+        self.condition = Condition()
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        self.in_channel = self.application.get_app_component().rabbitmq[
+            'client'].channels['in']
 
     def get(self):
         errors = None

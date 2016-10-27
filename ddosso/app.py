@@ -19,8 +19,19 @@ from . import uimodules
 from .util import rooted_path
 import firenado.tornadoweb
 
+from ddosso.rabbitmq import RabbitMQClient
+
+import os
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
+
+    def __init__(self, name, application):
+        super(DDOSSOComponent, self).__init__(name, application)
+        self.rabbitmq = {'client': None}
 
     def get_handlers(self):
         self.conf['social']['enabled'] = False
@@ -53,6 +64,17 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
 
     def get_config_file(self):
         return "ddosso"
+
+    def initialize(self):
+        from firenado.config import load_yaml_config_file
+        import firenado.conf
+        self.rabbitmq['client'] = RabbitMQClient(
+            load_yaml_config_file(os.path.join(firenado.conf.APP_CONFIG_PATH,
+                                               'rabbitmq.yml')))
+        self.rabbitmq['client'].connect()
+
+    def shutdown(self):
+        self.rabbitmq['client'].disconnect()
 
     def install(self):
         from sqlalchemy import text

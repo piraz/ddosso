@@ -60,16 +60,16 @@ class RabbitMQClient(object):
         )
 
     def disconnect(self):
-        logger.info('Disconnecting Engine from RabbitMQ')
+        logger.info('Disconnecting DDOSSO from RabbitMQ')
         self.connection.close()
 
     def on_connection_opened(self, connection):
-        logger.info('Engine connected to RabbitMQ')
+        logger.info('DDOSSO connected to RabbitMQ')
         self.connection = connection
         self.connection.channel(self.on_channel_opened)
 
     def on_channel_opened(self, channel):
-        logger.info('Engine channel opened with RabbitMQ')
+        logger.info('DDOSSO channel opened with RabbitMQ')
         self.channels['in'] = channel
         self.channels['in'].exchange_declare(
             exchange=EXCHANGE_NAME,
@@ -77,20 +77,20 @@ class RabbitMQClient(object):
         self.channels['in'].queue_declare(
             callback=self.on_input_queue_declared,
             queue=INPUT_QUEUE_NAME)
-        logger.info('Engine component initialized')
+        logger.info('DDOSSO component initialized')
 
     def on_input_queue_declared(self, queue):
-        logger.info('Engine input queue declared on RabbitMQ')
+        logger.info('DDOSSO input queue declared on RabbitMQ')
         self.channels['in'].queue_bind(callback=None,
                                        exchange=EXCHANGE_NAME,
                                        queue=INPUT_QUEUE_NAME,
                                        routing_key="#")
 
     def on_connection_closed(self, connection, code, message):
-        logger.info('Engine disconnected from RabbitMQ')
+        logger.info('DDOSSO disconnected from RabbitMQ')
 
     def on_connection_failed(self, connection, error_message):
-        logger.error('Engine was no able to connect to RabbitMQ, '
+        logger.error('DDOSSO was no able to connect to RabbitMQ, '
                      'terminating the node. Cause: %s' % error_message)
         import tornado.ioloop
         tornado.ioloop.IOLoop.instance().stop()

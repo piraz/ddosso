@@ -30,7 +30,7 @@ import functools
 
 import hashlib
 import hmac
-import uuid
+import logging
 import pika
 
 from tornado.auth import GoogleOAuth2Mixin
@@ -39,6 +39,9 @@ from tornado.web import MissingArgumentError
 from tornado import gen
 
 import urllib.parse
+import uuid
+
+logger = logging.getLogger(__name__)
 
 
 def only_ajax(method):
@@ -90,19 +93,11 @@ class ProfileHandler(firenado.tornadoweb.TornadoHandler):
                     ddosso_logo=ddosso_logo, errors=errors)
 
 
-class SigninHandler(firenado.tornadoweb.TornadoHandler):
-
-    def __init__(self, application, request, **kwargs):
-        from tornado.locks import Condition
-        super(SigninHandler, self).__init__(application, request, **kwargs)
-        self.callback_queue = None
-        self.condition = Condition()
-        self.response = None
-        self.corr_id = str(uuid.uuid4())
-        self.in_channel = self.application.get_app_component().rabbitmq[
-            'client'].channels['in']
+class SigninHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
 
     def get(self):
+        self.session.set("next_url", self.get_rooted_path("sign_in"))
+        print(self.session.get("GOOGLE_ACCESS"))
         errors = None
         if self.session.has('errors'):
             errors = self.session.get('errors')
@@ -132,7 +127,9 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler):
             error_data['errors'].update(form.errors)
             self.write(error_data)
 
-class SignupSocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
+
+class SignupSocialHandler(firenado.tornadoweb.TornadoHandler,
+                          RootedHandlerMixin):
 
     @only_ajax
     def post(self):
@@ -153,6 +150,16 @@ class SignupSocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin
 
 
 class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
+
+    def __init__(self, application, request, **kwargs):
+        from tornado.locks import Condition
+        super(SignupHandler, self).__init__(application, request, **kwargs)
+        self.callback_queue = None
+        self.condition = Condition()
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        self.in_channel = self.application.get_app_component().rabbitmq[
+            'client'].channels['in']
 
     def get(self):
         errors = None
@@ -176,7 +183,7 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             account_data['remote_ip'] = x_real_ip or self.request.remote_ip
             account_data['pod'] = self.component.conf[
                 'diaspora']['url'].split("//")[1]
-            user = self.account_service.register(account_data)
+            #user = self.account_service.register(account_data)
             #data = {'id': "abcd1234",
                     #'next_url': self.get_rooted_path("profile")}
             #self.write(data)
@@ -194,17 +201,19 @@ class GoogleSignupHandler(GoogleHandlerMixin,
     def get(self):
         errors = {}
         google_user = self.current_user
-        if self.user_service.by_email('podmin@therealtalk.org'):
+        #if self.user_service.by_email('podmin@therealtalk.org'):
+        if True:
             self.session.delete(self.SESSION_KEY)
             errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
                                 "login e associe sua conta os seu perfil do "
                                 "Google.")
             self.session.set("errors", errors)
             self.redirect("%s" % self.component.conf['root'])
-        ddosso_logo = self.component.conf['logo']
-        self.render("google_signup.html", ddosso_conf=self.component.conf,
-                    ddosso_logo=ddosso_logo, errors=errors,
-                    google_user=self.current_user)
+        else:
+            ddosso_logo = self.component.conf['logo']
+            self.render("google_signup.html", ddosso_conf=self.component.conf,
+                        ddosso_logo=ddosso_logo, errors=errors,
+                        google_user=self.current_user)
 
 
 class GoogleLoginHandler(GoogleHandlerMixin,
@@ -223,11 +232,12 @@ class GoogleLoginHandler(GoogleHandlerMixin,
         google_url_login = firenado.conf.app['login']['urls']['google']
         my_redirect_url = "%s://%s%s" % (self.request.protocol,
                                          self.request.host, google_url_login)
+
         if self.get_argument('code', False):
             access = yield self.get_authenticated_user(
                 redirect_uri=my_redirect_url,
                 code=self.get_argument('code'))
-            print(access)
+
             user = yield self.oauth2_request(
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 access_token=access["access_token"])
@@ -235,6 +245,8 @@ class GoogleLoginHandler(GoogleHandlerMixin,
             # e.g. set_secure_cookie.
             self.session.set(self.SESSION_KEY, tornado.escape.json_encode(
                 user))
+            self.session.set("GOOGLE_ACCESS", tornado.escape.json_encode(
+                access))
 
             self.redirect(self.get_argument('next',
                                             self.session.get("next_url")))
@@ -246,7 +258,8 @@ class GoogleLoginHandler(GoogleHandlerMixin,
                 client_secret=self.component.conf['social']['google']['secret'],
                 scope=['profile', 'email'],
                 response_type='code',
-                extra_params={'approval_prompt': 'force'})
+                extra_params={'approval_prompt': 'auto'})
+                #extra_params={'approval_prompt': 'force'})
 
 
 class DiscourseSSOHandler(firenado.tornadoweb.TornadoHandler):
@@ -345,12 +358,50 @@ class LoginHandler(firenado.tornadoweb.TornadoHandler):
 
 class CaptchaHandler(firenado.tornadoweb.TornadoHandler):
 
+    def __init__(self, application, request, **kwargs):
+        from tornado.locks import Condition
+        super(CaptchaHandler, self).__init__(application, request, **kwargs)
+        self.name = None
+        self.callback_queue = None
+        self.condition = Condition()
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        self.in_channel = self.application.get_app_component().rabbitmq[
+            'client'].channels['in']
+
     @only_ajax
+    @gen.coroutine
     def post(self, name):
-        import base64
-        data = {
-            "id": name,
-            "captcha": "data:image/png;base64,%s" %
-                       base64.b64encode(captcha_data(self, name)).decode()
-        }
-        self.write(data)
+        self.name = name
+        self.in_channel.queue_declare(exclusive=True,
+                                      callback=self.on_request_queue_declared)
+        yield self.condition.wait()
+
+        self.write(self.response)
+
+    @gen.coroutine
+    def on_request_queue_declared(self, response):
+        logger.info('Request temporary queue declared for captcha.')
+        from firenado.util import random_string
+        string = random_string(5).lower()
+        self.session.set("captcha_string_%s" % self.name, string)
+        self.callback_queue = response.method.queue
+        self.in_channel.basic_consume(self.on_response, no_ack=True,
+                                      queue=self.callback_queue)
+        self.in_channel.basic_publish(
+            exchange='',
+            routing_key='ddosso_captcha_rpc_queue',
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue,
+                correlation_id=self.corr_id,
+            ),
+            body=string)
+
+    def on_response(self, ch, method, props, body):
+        if self.corr_id == props.correlation_id:
+            self.response = {
+                "id": self.name,
+                "captcha": "data:image/png;base64,%s" % body.decode("utf-8")
+            }
+            self.in_channel.queue_delete(queue=self.callback_queue)
+            self.condition.notify()

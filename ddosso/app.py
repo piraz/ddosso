@@ -16,16 +16,17 @@
 
 from . import handlers
 from . import uimodules
+from .rabbitmq import RabbitMQClient
 from .util import rooted_path
+
+import firenado.conf
+from firenado.config import load_yaml_config_file
 import firenado.tornadoweb
-
-from ddosso.rabbitmq import RabbitMQClient
-
+import logging
 import os
 
-import logging
-
 logger = logging.getLogger(__name__)
+
 
 class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
 
@@ -66,8 +67,8 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
         return "ddosso"
 
     def initialize(self):
-        from firenado.config import load_yaml_config_file
-        import firenado.conf
+        print(load_yaml_config_file(os.path.join(firenado.conf.APP_CONFIG_PATH,
+                                               'rabbitmq.yml')))
         self.rabbitmq['client'] = RabbitMQClient(
             load_yaml_config_file(os.path.join(firenado.conf.APP_CONFIG_PATH,
                                                'rabbitmq.yml')))

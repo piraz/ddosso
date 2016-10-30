@@ -21,6 +21,7 @@ from firenado.config import load_yaml_config_file
 import pika
 import logging
 import os
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ channel.queue_declare(queue='ddosso_keygen_rpc_queue')
 channel.queue_declare(queue='ddosso_captcha_rpc_queue')
 
 
-def on_request(ch, method, props, body):
+def on_keygen_request(ch, method, props, body):
     logger.info("Ping received from %s." % body)
     response = 'Pong'
     ch.basic_publish(exchange='',
@@ -59,6 +60,7 @@ def on_request(ch, method, props, body):
 
 def on_captcha_request(ch, method, props, body):
     logger.info("Generating captcha for %s." % body.decode('utf-8'))
+    start = int(time.time() * 1000)
     response = captcha_data(body.decode('utf-8'))
     ch.basic_publish(exchange='',
                      routing_key=props.reply_to,
@@ -66,12 +68,13 @@ def on_captcha_request(ch, method, props, body):
                          correlation_id=props.correlation_id),
                      body=response)
     ch.basic_ack(delivery_tag=method.delivery_tag)
-    logger.info("Captcha for %s generated: %s." % (body.decode('utf-8'),
-                                                   response))
+    end = int(time.time() * 1000)
+    logger.info("Captcha for %s generated in %i ms." % (body.decode('utf-8'),
+                                                        end-start))
 
 channel.basic_qos(prefetch_count=1)
 
-channel.basic_consume(on_request, queue='ddosso_keygen_rpc_queue')
+channel.basic_consume(on_keygen_request, queue='ddosso_keygen_rpc_queue')
 channel.basic_consume(on_captcha_request, queue='ddosso_captcha_rpc_queue')
 
 logger.info(" [x] Awaiting RPC requests")

@@ -18,10 +18,9 @@
 
 from . import discourse
 from .forms import SigninForm, SignupForm
-from .util import captcha_data, only_ajax, rooted_path
+from .util import only_ajax, rooted_path
 import base64
 
-import firenado.conf
 import firenado.tornadoweb
 import firenado.security
 from firenado import service
@@ -32,7 +31,7 @@ import hmac
 import logging
 import pika
 
-from tornado.auth import GoogleOAuth2Mixin
+
 import tornado.escape
 from tornado.web import MissingArgumentError
 from tornado import gen
@@ -48,17 +47,6 @@ class RootedHandlerMixin:
     def get_rooted_path(self, path):
         root = self.component.conf['root']
         return rooted_path(root, path)
-
-
-class GoogleHandlerMixin:
-
-    SESSION_KEY = 'google_user'
-
-    def get_current_user(self):
-        user_json = self.session.get(self.SESSION_KEY)
-        if not user_json:
-            return None
-        return tornado.escape.json_decode(user_json)
 
 
 class IndexHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
@@ -177,75 +165,6 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             self.set_status(403)
             error_data['errors'].update(form.errors)
             self.write(error_data)
-
-
-class GoogleSignupHandler(GoogleHandlerMixin,
-                          firenado.tornadoweb.TornadoHandler):
-
-    @firenado.security.authenticated("google")
-    @service.served_by("ddosso.services.UserService")
-    def get(self):
-        errors = {}
-        google_user = self.current_user
-        #if self.user_service.by_email('podmin@therealtalk.org'):
-        if True:
-            self.session.delete(self.SESSION_KEY)
-            errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
-                                "login e associe sua conta os seu perfil do "
-                                "Google.")
-            self.session.set("errors", errors)
-            self.redirect("%s" % self.component.conf['root'])
-        else:
-            ddosso_logo = self.component.conf['logo']
-            self.render("google_signup.html", ddosso_conf=self.component.conf,
-                        ddosso_logo=ddosso_logo, errors=errors,
-                        google_user=self.current_user)
-
-
-class GoogleLoginHandler(GoogleHandlerMixin,
-                         firenado.tornadoweb.TornadoHandler, GoogleOAuth2Mixin,
-                         RootedHandlerMixin):
-    @gen.coroutine
-    def get(self):
-        self.settings['google_oauth'] = {}
-        self.settings[
-            'google_oauth']['key'] = self.component.conf[
-            'social']['google']['key']
-        self.settings[
-            'google_oauth']['secret'] = self.component.conf[
-            'social']['google']['secret']
-
-        google_url_login = firenado.conf.app['login']['urls']['google']
-        my_redirect_url = "%s://%s%s" % (self.request.protocol,
-                                         self.request.host, google_url_login)
-
-        if self.get_argument('code', False):
-            access = yield self.get_authenticated_user(
-                redirect_uri=my_redirect_url,
-                code=self.get_argument('code'))
-
-            user = yield self.oauth2_request(
-                "https://www.googleapis.com/oauth2/v1/userinfo",
-                access_token=access["access_token"])
-            # Save the user and access token with
-            # e.g. set_secure_cookie.
-            self.session.set(self.SESSION_KEY, tornado.escape.json_encode(
-                user))
-            self.session.set("GOOGLE_ACCESS", tornado.escape.json_encode(
-                access))
-
-            self.redirect(self.get_argument('next',
-                                            self.session.get("next_url")))
-        else:
-            print(self.session.get('next_url'))
-            yield self.authorize_redirect(
-                redirect_uri=my_redirect_url,
-                client_id=self.component.conf['social']['google']['key'],
-                client_secret=self.component.conf['social']['google']['secret'],
-                scope=['profile', 'email'],
-                response_type='code',
-                extra_params={'approval_prompt': 'auto'})
-                #extra_params={'approval_prompt': 'force'})
 
 
 class DiscourseSSOHandler(firenado.tornadoweb.TornadoHandler):

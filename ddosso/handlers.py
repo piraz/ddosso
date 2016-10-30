@@ -18,7 +18,7 @@
 
 from . import discourse
 from .forms import SigninForm, SignupForm
-from .util import captcha_data, rooted_path
+from .util import captcha_data, only_ajax, rooted_path
 import base64
 
 import firenado.conf
@@ -26,7 +26,6 @@ import firenado.tornadoweb
 import firenado.security
 from firenado import service
 
-import functools
 
 import hashlib
 import hmac
@@ -42,19 +41,6 @@ import urllib.parse
 import uuid
 
 logger = logging.getLogger(__name__)
-
-
-def only_ajax(method):
-
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if "X-Requested-With" in self.request.headers:
-            if self.request.headers['X-Requested-With'] == "XMLHttpRequest":
-                return method(self, *args, **kwargs)
-        else:
-            self.set_status(403)
-            self.write("This is an XMLHttpRequest request only.")
-    return wrapper
 
 
 class RootedHandlerMixin:

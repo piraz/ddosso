@@ -14,6 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import functools
+
+
+def only_ajax(method):
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if "X-Requested-With" in self.request.headers:
+            if self.request.headers['X-Requested-With'] == "XMLHttpRequest":
+                return method(self, *args, **kwargs)
+        else:
+            self.set_status(403)
+            self.write("This is an XMLHttpRequest request only.")
+    return wrapper
+
 
 def captcha_data(string):
     import base64

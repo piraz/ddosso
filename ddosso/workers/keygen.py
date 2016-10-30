@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ddosso.util import captcha_data
+from ddosso.util import generate_private_key
 
 import firenado.conf
 from firenado.config import load_yaml_config_file
@@ -22,6 +22,7 @@ import pika
 import logging
 import os
 import time
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +37,10 @@ params = pika.ConnectionParameters(
     virtual_host='/',
     credentials=creds
 )
-
 # Based on: http://bit.ly/2eS1KYP
 
 channel = None
+
 
 # Step #2
 def on_connected(connection):
@@ -52,22 +53,25 @@ def on_channel_open(new_channel):
     """Called when our channel has opened"""
     global channel
     channel = new_channel
-    channel.queue_declare(queue="ddosso_captcha_rpc_queue", durable=True,
+    channel.queue_declare(queue="ddosso_keygen_rpc_queue", durable=True,
                           exclusive=False, auto_delete=False,
-                          callback=on_captcha_queue_declared)
+                          callback=on_keygen_queue_declared)
+
 
 # Step #4
-def on_captcha_queue_declared(frame):
+def on_keygen_queue_declared(frame):
     """Called when RabbitMQ has told us our Queue has been declared, frame is
     the response from RabbitMQ"""
-    channel.basic_consume(handle_captcha_delivery,
-                          queue='ddosso_captcha_rpc_queue')
+    channel.basic_consume(handle_keygen_delivery,
+                          queue='ddosso_keygen_rpc_queue')
 
 
-def handle_captcha_delivery(ch, method, props, body):
-    logger.info("Generating captcha for %s." % body.decode('utf-8'))
+def handle_keygen_delivery(ch, method, props, body):
+    print(body)
+    logger.info("Generating private key for user %s." % body.decode('utf-8'))
     start = int(time.time() * 1000)
-    response = captcha_data(body.decode('utf-8'))
+    private_key = generate_private_key()
+    response = base64.b64encode(private_key.encode('ascii'))
     ch.basic_publish(exchange='',
                      routing_key=props.reply_to,
                      properties=pika.BasicProperties(
@@ -75,8 +79,9 @@ def handle_captcha_delivery(ch, method, props, body):
                      body=response)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     end = int(time.time() * 1000)
-    logger.info("Captcha for %s generated in %i ms." % (body.decode('utf-8'),
-                                                        end-start))
+    logger.info("Private key for user %s generated in %i ms." % (
+        body.decode('utf-8'), end - start))
+
 
 connection = pika.SelectConnection(params, on_connected)
 

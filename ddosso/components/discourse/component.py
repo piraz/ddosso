@@ -14,5 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .discourse.component import DiscourseComponent
-from .google.component import GoogleComponent
+from . import handlers
+
+import firenado.tornadoweb
+from ddosso.util import rooted_path
+
+
+class DiscourseComponent(firenado.tornadoweb.TornadoComponent):
+
+    def get_handlers(self):
+        root = self.conf['root']
+        return [
+            (r"%s" % rooted_path(root, "discourse/sign_on"),
+             handlers.DiscourseSSOHandler),
+            (r"%s" % rooted_path(root, "discourse/login"),
+             handlers.DiscourseLoginHandler),
+        ]
+
+    def get_config_file(self):
+        return "ddosso"

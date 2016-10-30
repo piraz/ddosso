@@ -50,10 +50,6 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
             (r"%s" % rooted_path(root, "/sign_up"), handlers.SignupHandler),
             (r"%s" % rooted_path(root, "/sign_up/social"),
              handlers.SignupSocialHandler),
-            (r"%s" % rooted_path(root, "discourse/sign_on"),
-             handlers.DiscourseSSOHandler),
-            (r"%s" % rooted_path(root, "discourse/login"),
-             handlers.LoginHandler),
         ]
 
     def get_ui_modules(self):

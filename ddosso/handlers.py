@@ -19,7 +19,6 @@
 from .forms import SigninForm, SignupForm
 from .util import only_ajax, rooted_path
 
-import firenado.tornadoweb
 import firenado.security
 from firenado import service
 
@@ -92,27 +91,6 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             self.write(error_data)
 
 
-class SignupSocialHandler(firenado.tornadoweb.TornadoHandler,
-                          RootedHandlerMixin):
-
-    @only_ajax
-    def post(self):
-        conf = self.component.conf['social']
-        social_data = {
-            'authenticated': False,
-            'type': None,
-            'facebook': {'enabled': conf['facebook']['enabled']},
-            'google': {'enabled': conf['google']['enabled']},
-            'twitter': {'enabled': conf['twitter']['enabled']}
-        }
-        if conf['google']['enabled']:
-            if self.session.has("google_user"):
-                print(self.session.get("google_user"))
-                social_data['authenticated'] = True
-                social_data['type'] = "google"
-        self.write(social_data)
-
-
 class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
 
     def __init__(self, application, request, **kwargs):
@@ -152,9 +130,8 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             self.in_channel.queue_declare(
                 exclusive=True, callback=self.on_request_queue_declared)
             yield self.condition.wait()
-            print(self.account_data['private_key'])
 
-            #user = self.account_service.register(account_data)
+            user = self.account_service.register(self.account_data)
             #data = {'id': "abcd1234",
                     #'next_url': self.get_rooted_path("profile")}
             #self.write(data)
@@ -194,6 +171,26 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
                 body).decode('ascii')
             self.in_channel.queue_delete(queue=self.callback_queue)
             self.condition.notify()
+
+
+class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
+
+    @only_ajax
+    def post(self, name):
+        conf = self.component.conf['social']
+        social_data = {
+            'authenticated': False,
+            'type': None,
+            'facebook': {'enabled': conf['facebook']['enabled']},
+            'google': {'enabled': conf['google']['enabled']},
+            'twitter': {'enabled': conf['twitter']['enabled']}
+        }
+        if conf['google']['enabled']:
+            if self.session.has("google_user"):
+                print(self.session.get("google_user"))
+                social_data['authenticated'] = True
+                social_data['type'] = "google"
+        self.write(social_data)
 
 
 class CaptchaHandler(firenado.tornadoweb.TornadoHandler):

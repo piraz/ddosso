@@ -48,8 +48,7 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
             (r"%s" % rooted_path(root, "/profile"), handlers.ProfileHandler),
             (r"%s" % rooted_path(root, "/sign_in"), handlers.SigninHandler),
             (r"%s" % rooted_path(root, "/sign_up"), handlers.SignupHandler),
-            (r"%s" % rooted_path(root, "/sign_up/social"),
-             handlers.SignupSocialHandler),
+            (r"%s" % rooted_path(root, "/social/(.*)"), handlers.SocialHandler),
         ]
 
     def get_ui_modules(self):

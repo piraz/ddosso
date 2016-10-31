@@ -1,12 +1,10 @@
 $(document).ready(function () {
-    var location_root = document.location.pathname.replace("sign_up", "");
-
-    SignupModel = can.Model.extend({
+    var SignupModel = can.Model.extend({
         findOne: "POST " + location_root + "captcha/{id}",
         create : "POST " + location_root + "sign_up"
     },{});
-    SocialModel = can.Model.extend({
-        findOne: "POST " + location_root + "sign_up/social"
+    var SocialModel = can.Model.extend({
+        findOne: "POST " + location_root + "social/{id}"
     },{});
 
     can.Component.extend({
@@ -33,7 +31,7 @@ $(document).ready(function () {
             signup: new SignupModel(),
             refreshCaptcha: function() {
                 var viewModel = this;
-                var values = {id: "sign_up"}
+                var values = {id: "sign_up"};
                 values._xsrf = get_xsrf();
                 SignupModel.findOne(values, function(response) {
                     viewModel.attr("captchaData", response.captcha);
@@ -41,7 +39,7 @@ $(document).ready(function () {
             },
             updateSocial: function() {
                 var viewModel = this;
-                var values = {}
+                var values = {id: "sign_up"};
                 values._xsrf = get_xsrf();
                 SocialModel.findOne(values, function(response) {
                     console.debug(response);
@@ -142,5 +140,6 @@ $(document).ready(function () {
         }
     });
 
-    $("#ddosso_sign_up_form").html(can.stache("<sign-up-form></sign-up-form>")());
+    $("#ddosso_sign_up_form").html(
+        can.stache("<sign-up-form></sign-up-form>")());
 });

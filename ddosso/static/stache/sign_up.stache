@@ -2,7 +2,11 @@
     <div class="col-sm-offset-3 col-sm-6">
         <div class="login-form">
             <form id="login_form" class="form-horizontal">
-                <div class="form-group {{#hasEmailError}}has-error{{/hasEmailError}}">
+                {{#isProcessing}}
+                    <span class="help-block"></span> Processando...</span>
+                {{/isProcessing}}
+                <fieldset id="signupFieldset">
+                <div class="form-group {{#hasEmailError}}has-error{{/hasEmailError}}" >
                     <label for="user-email" class="col-sm-2 control-label">E-Mail</label>
                     <div class="col-sm-10">
                         <input name="email" id="user-email" type="text" class="form-control" placeholder="Informe seu email" autofocus>
@@ -56,6 +60,7 @@
                         <a id="signinLink" class="link-register" href="javascript:void(0)" class="link-register">Entrar com uma conta existente</a>
                     </div>
                 </div>
+                {{#isProcessing}}</fieldset>{{/isProcessing}}
             </form>
         </div>
     </div>

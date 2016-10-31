@@ -8,15 +8,30 @@ $(document).ready(function () {
         template: can.view("#socialControlsStache"),
         viewModel: {
             hasCaptchaError: false,
+            isAuthenticated: false,
             isFacebookEnabled: false,
             isGoogleEnabled: false,
             isTwitterEnabled: false,
+            socialPicture: "",
+            socialFirstName: "",
+            socialLastName: "",
             social: new SocialModel(),
             updateSocial: function () {
                 var viewModel = this;
                 var values = {id: "sign_up"};
                 values._xsrf = get_xsrf();
                 SocialModel.findOne(values, function (social) {
+                    if (social.authenticated) {
+                        viewModel.attr("isAuthenticated", true);
+                        viewModel.attr("socialPicture", social.picture);
+                        viewModel.attr("socialFirstName", social.first_name);
+                        viewModel.attr("socialLastName", social.last_name);
+                        if($("#userEmail").length) {
+                            if(!$("#userEmail").val()){
+                                $("#userEmail").val(social.email);
+                            }
+                        }
+                    }
                     if(social.google.enabled) {
                         viewModel.attr("isGoogleEnabled", true);
                     }

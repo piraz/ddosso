@@ -181,15 +181,25 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
         social_data = {
             'authenticated': False,
             'type': None,
+            'picture': None,
+            'first_name': None,
+            'last_name': None,
+            'email': None,
             'facebook': {'enabled': conf['facebook']['enabled']},
             'google': {'enabled': conf['google']['enabled']},
             'twitter': {'enabled': conf['twitter']['enabled']}
         }
         if conf['google']['enabled']:
             if self.session.has("google_user"):
-                print(self.session.get("google_user"))
+                google_user = tornado.escape.json_decode(
+                    self.session.get("google_user"))
+                print(google_user)
                 social_data['authenticated'] = True
                 social_data['type'] = "google"
+                social_data['email'] = google_user['email']
+                social_data['picture'] = google_user['picture']
+                social_data['first_name'] = google_user['given_name']
+                social_data['last_name'] = google_user['family_name']
         self.write(social_data)
 
 

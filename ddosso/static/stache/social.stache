@@ -1,27 +1,49 @@
 <div class="row">
     <div class="col-sm-offset-3 col-sm-6">
-        <div class="row">
-            {{#isGoogleEnabled}}
-            <div class="col-sm-6 col-lg-4">
-                <button id="googleOauth" class="btn btn-block btn-social google" onclick="location.href='#'">
-                    <i class="fa fa-google-plus"></i> com Google
-                </button>
+        {{#isAuthenticated}}
+            <div class="row">
+                <div class="col-sm-3">
+                    <img src="{{{socialPicture}}}" alt="" class="img-thumbnail">
+                </div>
+                <div class="col-sm-9">
+                    <div class="row">
+                        <div class="col-sm-3">First Name</div>
+                        <div class="col-sm-9">{{{socialFirstName}}}</div>
+                        <div class="col-sm-3">Last Name</div>
+                        <div class="col-sm-9">{{{socialLastName}}}</div>
+                        <div class="text-center">
+                            <button class="btn btn-block btn-social google">
+                                <i class="fa fa-google-plus"></i> Google
+                            </button>
+                            <a id="resetOauth"  href="javascript:void(0)" class="link-register">Usar outra rede social</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {{/isGoogleEnabled}}
-            {{#isFacebookEnabled}}
-            <div class="col-sm-6 col-lg-4">
-                <button class="btn btn-block btn-social facebook">
-                    <i class="fa fa-facebook"></i> com Facebook
-                </button>
+        {{else}}
+            <div class="row">
+                {{#isGoogleEnabled}}
+                <div class="col-sm-6 col-lg-4">
+                    <button id="googleOauth" class="btn btn-block btn-social google">
+                        <i class="fa fa-google-plus"></i> com Google
+                    </button>
+                </div>
+                {{/isGoogleEnabled}}
+                {{#isFacebookEnabled}}
+                <div class="col-sm-6 col-lg-4">
+                    <button class="btn btn-block btn-social facebook">
+                        <i class="fa fa-facebook"></i> com Facebook
+                    </button>
+                </div>
+                {{/isFacebookEnabled}}
+                {{#isTwitterEnabled}}
+                <div class="col-sm-6 col-lg-4">
+                    <button class="btn btn-block btn-social twitter">
+                        <i class="fa fa-twitter"></i> com Twitter
+                    </button>
+                </div>
+                {{/isTwitterEnabled}}
             </div>
-            {{/isFacebookEnabled}}
-            {{#isTwitterEnabled}}
-            <div class="col-sm-6 col-lg-4">
-                <button class="btn btn-block btn-social twitter">
-                    <i class="fa fa-twitter"></i> com Twitter
-                </button>
-            </div>
-            {{/isTwitterEnabled}}
-        </div>
+        {{/isAuthenticated}}
     </div>
 </div>

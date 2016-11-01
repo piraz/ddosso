@@ -71,7 +71,7 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
     def install(self):
         from sqlalchemy import text
         from firenado.util.sqlalchemy_util import Base
-        from .diaspora.models import DddossoUserBase
+        from .diaspora.models import DddossoSocialLinkBase
         print('Installing DDOSSO...')
         print('Creating DDOSSO users table ...')
         engine = self.application.get_data_source(
@@ -80,7 +80,7 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
         # Dropping all
         # TODO Not to drop all if something is installed right?
 
-        DddossoUserBase.__table__.drop(engine, checkfirst=True)
+        DddossoSocialLinkBase.__table__.drop(engine, checkfirst=True)
         # Creating database
-        DddossoUserBase.__table__.create(engine)
+        DddossoSocialLinkBase.__table__.create(engine)
         engine.dispose()

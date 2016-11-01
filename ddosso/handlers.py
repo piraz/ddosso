@@ -122,6 +122,7 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
         if form.validate():
             self.set_status(200)
             self.account_data = form.data
+            self.account_data['social'] = []
             # Getting real ip from the nginx
             x_real_ip = self.request.headers.get("X-Real-IP")
             self.account_data['remote_ip'] = x_real_ip or self.request.remote_ip
@@ -130,11 +131,19 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             self.in_channel.queue_declare(
                 exclusive=True, callback=self.on_request_queue_declared)
             yield self.condition.wait()
-
+            if self.session.has("google_user"):
+                google_user = tornado.escape.json_decode(
+                    self.session.get("google_user"))
+                data = {
+                    'type': "Oauth2:Google",
+                    'data': self.session.get("google_user"),
+                    'handler': google_user['email'],
+                }
+                self.account_data['social'].append(data)
             user = self.account_service.register(self.account_data)
-            #data = {'id': "abcd1234",
-                    #'next_url': self.get_rooted_path("profile")}
-            #self.write(data)
+            data = {'id': "abcd1234",
+                    'next_url': self.get_rooted_path("profile")}
+            self.write(data)
         else:
             self.set_status(403)
             error_data['errors'].update(form.errors)

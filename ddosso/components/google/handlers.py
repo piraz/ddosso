@@ -44,8 +44,7 @@ class GoogleSignupHandler(GoogleHandlerMixin,
     def get(self):
         errors = {}
         google_user = self.current_user
-        #if self.user_service.by_email(google_user['email']):
-        if False:
+        if self.user_service.by_email(google_user['email']):
             self.session.delete(self.SESSION_KEY)
             errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
                                 "login e associe sua conta os seu perfil do "

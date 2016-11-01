@@ -17,7 +17,8 @@
 from datetime import datetime
 from firenado import service
 from firenado.config import load_yaml_config_file
-from .diaspora.models import AspectBase, PersonBase, ProfileBase, UserBase
+from .diaspora.models import (AspectBase, DddossoSocialLinkBase, PersonBase,
+                              ProfileBase, UserBase)
 import logging
 from passlib.hash import bcrypt
 import os
@@ -189,7 +190,6 @@ class PersonService(service.FirenadoService):
         return person
 
 
-
 class AspectService(service.FirenadoService):
 
     def create(self, aspect_data, db_session=None):
@@ -214,6 +214,30 @@ class AspectService(service.FirenadoService):
         return aspect
 
 
+class SocialLinkService(service.FirenadoService):
+
+    def create(self, social_data, db_session=None):
+        created_utc = datetime.utcnow()
+        social_link = DddossoSocialLinkBase()
+        social_link.user_id = social_data['user'].id
+        social_link.type = social_data['type']
+        social_link.data = social_data['data']
+        social_link.handler = social_data['handler']
+        social_link.created_at = created_utc
+        social_link.updated_at = created_utc
+
+        commit = False
+        if not db_session:
+            db_session = self.get_data_source('diaspora').session
+            commit = True
+        db_session.add(social_link)
+        if commit:
+            db_session.commit()
+            db_session.close()
+        logger.info("Created social link: %s" % social_link)
+        return social_link
+
+
 class ProfileService(service.FirenadoService):
 
     def by_person(self, person):
@@ -224,7 +248,6 @@ class ProfileService(service.FirenadoService):
 
     def create(self, profile_data, created_utc=None, db_session=None):
         """
-
         :param person:
         :param first_name:
         :param last_name:
@@ -334,6 +357,7 @@ class AccountService(service.FirenadoService):
     @service.served_by(PersonService)
     @service.served_by(ProfileService)
     @service.served_by(AspectService)
+    @service.served_by(SocialLinkService)
     def register(self, account_data):
         logger.info("Received valid data to create account: %s" % account_data)
         db_session = self.get_data_source(
@@ -364,6 +388,11 @@ class AccountService(service.FirenadoService):
             aspect_data['order_id'] = order_id
             order_id -= 1
             self.aspect_service.create(aspect_data, db_session=db_session)
+            db_session.commit()
+
+        for social_data in account_data['social']:
+            social_data['user'] = user
+            self.social_link_service.create(social_data, db_session=db_session)
             db_session.commit()
 
         db_session.close()

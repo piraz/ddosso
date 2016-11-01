@@ -3,9 +3,6 @@ $(document).ready(function () {
         findOne: "POST " + location_root + "captcha/{id}",
         create : "POST " + location_root + "sign_up"
     },{});
-    var SocialModel = can.Model.extend({
-        findOne: "POST " + location_root + "social/{id}"
-    },{});
 
     can.Component.extend({
         tag: "sign-up-form",
@@ -35,14 +32,6 @@ $(document).ready(function () {
                 values._xsrf = get_xsrf();
                 SignupModel.findOne(values, function(response) {
                     viewModel.attr("captchaData", response.captcha);
-                });
-            },
-            updateSocial: function() {
-                var viewModel = this;
-                var values = {id: "sign_up"};
-                values._xsrf = get_xsrf();
-                SocialModel.findOne(values, function(response) {
-                    console.debug(response);
                 });
             },
             processLogin: function(login) {
@@ -91,7 +80,6 @@ $(document).ready(function () {
         events: {
             "inserted": function () {
                 this.viewModel.refreshCaptcha();
-                this.viewModel.updateSocial();
             },
             "#login_button click": function() {
                 //this.viewModel.attr('error', false);

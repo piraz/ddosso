@@ -60,7 +60,7 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
 
     def get(self):
         self.session.set("next_url", self.get_rooted_path("sign_in"))
-        print(self.session.get("GOOGLE_ACCESS"))
+
         errors = None
         if self.session.has('errors'):
             errors = self.session.get('errors')

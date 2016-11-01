@@ -1,20 +1,19 @@
 <div class="row">
     <div class="col-sm-offset-3 col-sm-6">
         {{#isAuthenticated}}
-            <div class="row">
-                <div class="col-sm-3">
+            <div class="row text-center">
+                <div class="col-sm-offset-3 col-sm-2">
                     <img src="{{{socialPicture}}}" alt="" class="img-thumbnail">
+                    <button class="btn btn-block btn-social google">
+                        <i class="fa fa-google-plus"></i>
+                    </button>
                 </div>
-                <div class="col-sm-9">
+                <div class="col-sm-4">
                     <div class="row">
-                        <div class="col-sm-3">First Name</div>
-                        <div class="col-sm-9">{{{socialFirstName}}}</div>
-                        <div class="col-sm-3">Last Name</div>
-                        <div class="col-sm-9">{{{socialLastName}}}</div>
+                        <div>First Name: {{{socialFirstName}}}</div>
+
+                        <div>Last Name: {{{socialLastName}}}</div>
                         <div class="text-center">
-                            <button class="btn btn-block btn-social google">
-                                <i class="fa fa-google-plus"></i> Google
-                            </button>
                             <a id="resetOauth"  href="javascript:void(0)" class="link-register">Usar outra rede social</a>
                         </div>
                     </div>

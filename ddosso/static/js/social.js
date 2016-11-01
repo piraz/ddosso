@@ -1,6 +1,7 @@
 $(document).ready(function () {
     var SocialModel = can.Model.extend({
-        findOne: "POST " + location_root + "social/{id}"
+        findOne: "POST " + location_root + "social/{id}",
+        destroy: "DELETE " + location_root + "social/{id}"
     },{});
 
     can.Component.extend({
@@ -32,11 +33,29 @@ $(document).ready(function () {
                             }
                         }
                     }
+                    else{
+                        viewModel.attr("isAuthenticated", false);
+                        viewModel.attr("socialPicture", "");
+                        viewModel.attr("socialFirstName", "");
+                        viewModel.attr("socialLastName", "");
+                        if($("#userEmail").length) {
+                            if($("#userEmail").val()){
+                                $("#userEmail").val("");
+                            }
+                        }
+                    }
                     if(social.google.enabled) {
                         viewModel.attr("isGoogleEnabled", true);
+                        if(!$("#userEmail").val()){
+                            $("#userEmail").val(social.email);
+                        }
                     }
                 });
             },
+            processReset: function (response) {
+                this.viewModel.updateSocial();
+                this.viewModel.attr("isAuthenticated", false);
+            }
         },
         events: {
             "inserted": function () {
@@ -45,8 +64,13 @@ $(document).ready(function () {
             "#googleOauth click": function() {
                 window.document.location = location_root + "google/oauth2";
             },
-            "#refresh_captcha click": function(event) {
-                this.viewModel.refreshCaptcha();
+            "#resetOauth click": function(event) {
+                console.debug(event);
+                var values = {id: "social"};
+                values._xsrf = get_xsrf();
+                this.viewModel.social.attr(values).destroy(
+                    this.viewModel.processReset.bind(this)
+                );
             },
             "#signinLink click": function(event) {
                 window.document.location = location_root + "sign_in";

@@ -202,6 +202,16 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
                 social_data['last_name'] = google_user['family_name']
         self.write(social_data)
 
+    def delete(self, name):
+        conf = self.component.conf['social']
+        if conf['google']['enabled']:
+            if self.session.has("google_user"):
+                self.session.delete("google_user")
+        social_data = {
+            'deleted': True,
+        }
+        self.write(social_data)
+
 
 class CaptchaHandler(firenado.tornadoweb.TornadoHandler):
 

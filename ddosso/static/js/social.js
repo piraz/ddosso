@@ -46,9 +46,9 @@ $(document).ready(function () {
                     }
                     if(social.google.enabled) {
                         viewModel.attr("isGoogleEnabled", true);
-                        if(!$("#userEmail").val()){
-                            $("#userEmail").val(social.email);
-                        }
+                    }
+                    if(social.twitter.enabled) {
+                        viewModel.attr("isTwitterEnabled", true);
                     }
                 });
             },

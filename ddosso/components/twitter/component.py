@@ -14,6 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .discourse.component import DiscourseComponent
-from .google.component import GoogleComponent
-from .twitter.component import TwitterComponent
+from . import handlers
+
+import firenado.tornadoweb
+from ddosso.util import rooted_path
+
+
+class TwitterComponent(firenado.tornadoweb.TornadoComponent):
+
+    def get_handlers(self):
+        root = self.conf['root']
+        return [
+            (r"%s" % rooted_path(root, "twitter/oauth"),
+             handlers.TwitterSignupHandler),
+            (r"%s" % rooted_path(root, "twitter/oauthcallback"),
+             handlers.TwitterLoginHandler),
+        ]
+
+    def get_config_file(self):
+        return "ddosso"

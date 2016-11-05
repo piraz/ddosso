@@ -212,6 +212,8 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             'twitter': {'enabled': conf['twitter']['enabled']}
         }
         if conf['google']['enabled']:
+            if name == "sign_in":
+                self.session.delete(GOOGLE_USER)
             if self.session.has(GOOGLE_USER):
                 google_user = tornado.escape.json_decode(
                     self.session.get(GOOGLE_USER))
@@ -222,6 +224,8 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
                 social_data['first_name'] = google_user['given_name']
                 social_data['last_name'] = google_user['family_name']
         if conf['twitter']['enabled']:
+            if name == "sign_in":
+                self.session.delete(TWITTER_USER)
             if self.session.has(TWITTER_USER):
                 twitter_user = tornado.escape.json_decode(
                     self.session.get(TWITTER_USER))

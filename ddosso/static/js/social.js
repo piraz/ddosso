@@ -21,7 +21,9 @@ $(document).ready(function () {
             social: new SocialModel(),
             updateSocial: function () {
                 var viewModel = this;
-                var values = {id: "sign_up"};
+                var values = {
+                    id: window.location.pathname.replace(location_root, "")
+                };
                 values._xsrf = get_xsrf();
                 SocialModel.findOne(values, function (social) {
                     if (social.authenticated) {

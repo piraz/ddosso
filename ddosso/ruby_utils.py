@@ -1,22 +1,56 @@
-import ujson
 import urllib.parse
 import base64
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
+from Crypto import Random
+from hashlib import sha1
+import hmac
+import binascii
 
+BS = 16
+pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 unpad = lambda s: s[:-ord(s[len(s)-1:])]
 
-# As seen in https://gist.github.com/wbills/3a83338508ded263e701
 
-class RailsCookieDecryptor(object):
-    def __init__(self, secret_key_base, salt="encrypted cookie",
-                 keylen=64, iterations=1000):
-        self.secret = PBKDF2(secret_key_base.encode(), salt.encode(), keylen,
-                             iterations)
+class RailsCookie(object):
+    def __init__(self, secret_key_base, salt="encrypted cookie", keylen=64, iterations=1000):
+        self.secret_key = secret_key_base.encode("ascii")
+        self.secret = PBKDF2(self.secret_key, salt.encode("ascii"), keylen, iterations)
 
-    def get_cookie_data(self, cookie):
-        cookie = base64.b64decode(urllib.parse.unquote(cookie).split('--')[0])
+    def decrypt(self, cookie):
+        first = urllib.parse.unquote(cookie)
+        first = cookie
+        print(first)
+        second = first.split('--')[0]
+        print(second)
+        cookie = base64.b64decode(second)
+
+        print(first.split('--')[1])
+
         encrypted_data, iv = map(base64.b64decode, cookie.decode().split('--'))
+        #print(binascii.crc_hqx(encrypted_data))
+        #hashed = hmac.new(self.secret_key, encrypted_data, hashlib.sha1)
         cipher = AES.new(self.secret[:32], AES.MODE_CBC, iv)
+
         plaintext = unpad(cipher.decrypt(encrypted_data))
-        return ujson.loads(plaintext)
+        print(hmac.new(self.secret_key, encrypted_data,
+                       digestmod=sha1).hexdigest())
+        return plaintext
+
+    def encrypt(self, raw):
+        import html
+        raw = pad(raw)
+
+        iv = Random.new().read(AES.block_size)
+        #iv = random_string(AES.block_size).encode('unicode_escape')
+        #iv = b'\x8cE\\\x97-x|\xfd\xd2\x87\xa3C~]<\xac'
+        cipher = AES.new(self.secret[:32], AES.MODE_CBC, iv)
+
+        encrypted = cipher.encrypt(raw)
+        buga = base64.b64encode(encrypted)
+        iv_base64 = base64.b64encode(iv)
+        separator = "--".encode('ascii')
+        print(binascii.hexlify(self.secret_key))
+        hexdigest = hmac.new(binascii.hexlify(self.secret_key), encrypted, digestmod=sha1).hexdigest().encode()
+        print(hexdigest)
+        return urllib.parse.quote_from_bytes((base64.b64encode(html.escape(buga.decode()).encode() + separator + iv_base64)) + separator + hexdigest).encode()

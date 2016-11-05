@@ -4,9 +4,6 @@ $(document).ready(function () {
     SigninModel = can.Model.extend({
         create : "POST " + location_root + "sign_in"
     },{});
-    SocialModel = can.Model.extend({
-        findOne: "POST " + location_root + "sign_up/social"
-    },{});
 
     can.Component.extend({
         tag: "sign-in-form",
@@ -21,14 +18,6 @@ $(document).ready(function () {
             usernameError: "",
             blurTimeout: null,
             signin: new SigninModel(),
-            updateSocial: function() {
-                var viewModel = this;
-                var values = {};
-                values._xsrf = get_xsrf();
-                SocialModel.findOne(values, function(response) {
-                    console.debug(response);
-                });
-            },
             processLogin: function(login) {
                 window.location = login.next_url;
             },
@@ -50,9 +39,6 @@ $(document).ready(function () {
             }
         },
         events: {
-            "inserted": function () {
-                this.viewModel.updateSocial();
-            },
             "#signinButton click": function() {
                 //this.viewModel.attr('error', false);
                 //this.viewModel.attr('errorMessage', '');

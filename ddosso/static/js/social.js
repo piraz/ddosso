@@ -13,6 +13,8 @@ $(document).ready(function () {
             isFacebookEnabled: false,
             isGoogleEnabled: false,
             isTwitterEnabled: false,
+            socialImageClass: "",
+            socialType: "",
             socialPicture: "",
             socialFirstName: "",
             socialLastName: "",
@@ -27,9 +29,20 @@ $(document).ready(function () {
                         viewModel.attr("socialPicture", social.picture);
                         viewModel.attr("socialFirstName", social.first_name);
                         viewModel.attr("socialLastName", social.last_name);
+                        viewModel.attr("socialImageClass", social.type);
+                        viewModel.attr("socialType", social.type);
                         if($("#userEmail").length) {
-                            if(!$("#userEmail").val()){
-                                $("#userEmail").val(social.email);
+                            if(social.type == "google"){
+                                viewModel.attr("socialImageClass",
+                                    "google-plus");
+                                if(!$("#userEmail").val()){
+                                    $("#userEmail").val(social.handler);
+                                }
+                            }
+                            if(social.type == "twitter"){
+                                if(!$("#username").val()){
+                                    $("#username").val(social.handler);
+                                }
                             }
                         }
                     }
@@ -63,6 +76,9 @@ $(document).ready(function () {
             },
             "#googleOauth click": function() {
                 window.document.location = location_root + "google/oauth2";
+            },
+            "#twitterOauth click": function() {
+                window.document.location = location_root + "twitter/oauth";
             },
             "#resetOauth click": function(event) {
                 console.debug(event);

@@ -31,6 +31,9 @@ import uuid
 logger = logging.getLogger(__name__)
 
 
+GOOGLE_USER = "google_user"
+TWITTER_USER = "twitter_user"
+
 class RootedHandlerMixin:
 
     def get_rooted_path(self, path):
@@ -131,12 +134,12 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             self.in_channel.queue_declare(
                 exclusive=True, callback=self.on_request_queue_declared)
             yield self.condition.wait()
-            if self.session.has("google_user"):
+            if self.session.has(GOOGLE_USER):
                 google_user = tornado.escape.json_decode(
-                    self.session.get("google_user"))
+                    self.session.get(GOOGLE_USER))
                 data = {
                     'type': "Oauth2:Google",
-                    'data': self.session.get("google_user"),
+                    'data': self.session.get(GOOGLE_USER),
                     'handler': google_user['email'],
                 }
                 self.account_data['social'].append(data)
@@ -199,23 +202,33 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             'twitter': {'enabled': conf['twitter']['enabled']}
         }
         if conf['google']['enabled']:
-            if self.session.has("google_user"):
+            if self.session.has(GOOGLE_USER):
                 google_user = tornado.escape.json_decode(
-                    self.session.get("google_user"))
-                print(google_user)
+                    self.session.get(GOOGLE_USER))
                 social_data['authenticated'] = True
                 social_data['type'] = "google"
-                social_data['email'] = google_user['email']
+                social_data['handler'] = google_user['email']
                 social_data['picture'] = google_user['picture']
                 social_data['first_name'] = google_user['given_name']
                 social_data['last_name'] = google_user['family_name']
+        if conf['twitter']['enabled']:
+            if self.session.has(TWITTER_USER):
+                twitter_user = tornado.escape.json_decode(
+                    self.session.get(TWITTER_USER))
+                social_data['authenticated'] = True
+                social_data['type'] = "twitter"
+                social_data['handler'] = twitter_user['username']
+                social_data['picture'] = twitter_user[
+                    'profile_image_url_https'].replace("_normal", "_400x400")
+                social_data['first_name'] = twitter_user['name']
+                social_data['last_name'] = ""
         self.write(social_data)
 
     def delete(self, name):
         conf = self.component.conf['social']
         if conf['google']['enabled']:
-            if self.session.has("google_user"):
-                self.session.delete("google_user")
+            if self.session.has(GOOGLE_USER):
+                self.session.delete(GOOGLE_USER)
         social_data = {
             'deleted': True,
         }
@@ -242,7 +255,6 @@ class CaptchaHandler(firenado.tornadoweb.TornadoHandler):
         self.in_channel.queue_declare(exclusive=True,
                                       callback=self.on_request_queue_declared)
         yield self.condition.wait()
-
         self.write(self.response)
 
     @gen.coroutine

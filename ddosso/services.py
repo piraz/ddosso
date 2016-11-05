@@ -237,6 +237,13 @@ class SocialLinkService(service.FirenadoService):
         logger.info("Created social link: %s" % social_link)
         return social_link
 
+    def by_handler(self, link_type, handler):
+        db_session = self.get_data_source('diaspora').session
+        return db_session.query(DddossoSocialLinkBase).filter(
+            DddossoSocialLinkBase.type == link_type).filter(
+            DddossoSocialLinkBase.handler == handler).one_or_none()
+        db_session.close()
+
 
 class ProfileService(service.FirenadoService):
 

@@ -20,7 +20,7 @@ import firenado.conf
 import firenado.tornadoweb
 from firenado import service
 
-from tornado.auth import GoogleOAuth2Mixin
+from tornado.auth import TwitterMixin
 from tornado.escape import json_encode, json_decode
 from tornado import gen
 
@@ -39,12 +39,13 @@ class TwitterHandlerMixin:
 class TwitterSignupHandler(TwitterHandlerMixin,
                           firenado.tornadoweb.TornadoHandler):
 
-    @firenado.security.authenticated("google")
-    @service.served_by("ddosso.services.UserService")
+    @firenado.security.authenticated("twitter")
+    @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
         errors = {}
-        google_user = self.current_user
-        if self.user_service.by_email(google_user['email']):
+        twitter_user = self.current_user
+        if self.social_link_service.by_handler("Oauth:Twitter",
+                                               twitter_user['username']):
             self.session.delete(self.SESSION_KEY)
             errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
                                 "login e associe sua conta ao seu perfil do "
@@ -56,7 +57,7 @@ class TwitterSignupHandler(TwitterHandlerMixin,
 
 
 class TwitterLoginHandler(TwitterHandlerMixin,
-                         firenado.tornadoweb.TornadoHandler, GoogleOAuth2Mixin,
+                         firenado.tornadoweb.TornadoHandler, TwitterMixin,
                          RootedHandlerMixin):
     @gen.coroutine
     def get(self):
@@ -65,30 +66,24 @@ class TwitterLoginHandler(TwitterHandlerMixin,
         self.settings['twitter_consumer_secret'] = self.component.conf[
             'social']['twitter']['secret']
 
-        google_url_login = firenado.conf.app['login']['urls']['twitter']
+        twitter_url_login = firenado.conf.app['login']['urls']['twitter']
         my_redirect_url = "%s://%s%s" % (self.request.protocol,
-                                         self.request.host, google_url_login)
+                                         self.request.host, twitter_url_login)
 
         if self.get_argument('oauth_token', False):
-            access = yield self.get_authenticated_user(
-                redirect_uri=my_redirect_url,
-                code=self.get_argument('code'))
 
             user = yield self.get_authenticated_user()
-            del user["description"]
+            print(user)
+            del user['description']
+            user['oauth_token'] = self.get_argument('oauth_token')
+            user['oauth_verifier'] = self.get_argument('oauth_verifier')
             # Save the user and access token with
             # e.g. set_secure_cookie.
             self.session.set(self.SESSION_KEY, json_encode(user))
 
-            self.redirect(
-                self.get_argument('next',
-                                  self.get_rooted_path("google/oauth2")))
+            self.redirect(self.get_argument('next',
+                                            self.get_rooted_path(
+                                                "twitter/oauth")))
         else:
-            yield self.authorize_redirect(
-                redirect_uri=my_redirect_url,
-                client_id=self.component.conf['social']['google']['key'],
-                client_secret=self.component.conf['social']['google']['secret'],
-                scope=['profile', 'email'],
-                response_type='code',
-                extra_params={'approval_prompt': 'auto'})
+            yield self.authorize_redirect(callback_uri=twitter_url_login)
                 #extra_params={'approval_prompt': 'force'})

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 GOOGLE_USER = "google_user"
 TWITTER_USER = "twitter_user"
 
+
 class RootedHandlerMixin:
 
     def get_rooted_path(self, path):
@@ -143,8 +144,17 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
                     'handler': google_user['email'],
                 }
                 self.account_data['social'].append(data)
+            if self.session.has(TWITTER_USER):
+                twitter_user = tornado.escape.json_decode(
+                    self.session.get(TWITTER_USER))
+                data = {
+                    'type': "Oauth:Twitter",
+                    'data': self.session.get(TWITTER_USER),
+                    'handler': twitter_user['username'],
+                }
+                self.account_data['social'].append(data)
             user = self.account_service.register(self.account_data)
-            data = {'id': "abcd1234",
+            data = {'id': self.account_data['username'],
                     'next_url': self.get_rooted_path("profile")}
             self.write(data)
         else:
@@ -229,6 +239,9 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
         if conf['google']['enabled']:
             if self.session.has(GOOGLE_USER):
                 self.session.delete(GOOGLE_USER)
+        if conf['twitter']['enabled']:
+            if self.session.has(TWITTER_USER):
+                self.session.delete(TWITTER_USER)
         social_data = {
             'deleted': True,
         }

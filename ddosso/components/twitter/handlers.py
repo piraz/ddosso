@@ -71,16 +71,23 @@ class TwitterLoginHandler(TwitterHandlerMixin,
                                          self.request.host, twitter_url_login)
 
         if self.get_argument('oauth_token', False):
-
             user = yield self.get_authenticated_user()
-            print(user)
             del user['description']
+            del user['follow_request_sent']
+            del user['status']
+            del user['profile_link_color']
+            del user['profile_text_color']
+            del user['profile_sidebar_fill_color']
+            del user['profile_sidebar_border_color']
+            del user['profile_background_color']
+            del user['statuses_count']
+
+
             user['oauth_token'] = self.get_argument('oauth_token')
             user['oauth_verifier'] = self.get_argument('oauth_verifier')
             # Save the user and access token with
             # e.g. set_secure_cookie.
             self.session.set(self.SESSION_KEY, json_encode(user))
-
             self.redirect(self.get_argument('next',
                                             self.get_rooted_path(
                                                 "twitter/oauth")))

@@ -36,11 +36,10 @@ class UserService(service.FirenadoService):
             db_session = self.get_data_source('diaspora').session
             self_session = True
         user = db_session.query(UserBase).filter(
-            UserBase.username == username).one_or_none()
+            UserBase.username == username.lower()).one_or_none()
         if self_session:
             db_session.close()
         return user
-
 
     def by_email(self, email, db_session=None):
         self_session = False

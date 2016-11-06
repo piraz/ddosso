@@ -97,8 +97,7 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler, RootedHandlerMixin):
             remote_ip = x_real_ip or self.request.remote_ip
             self.user_service.set_user_seem(account_data, remote_ip)
             self.set_status(200)
-            data = {'id': account_data['username'],
-                    'next_url': self.get_rooted_path("/")}
+            data = {'id': account_data['username'], 'next_url': "/"}
             self.write(data)
         else:
             self.set_status(403)

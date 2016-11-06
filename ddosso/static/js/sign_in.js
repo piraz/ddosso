@@ -19,6 +19,7 @@ $(document).ready(function () {
             blurTimeout: null,
             signin: new SigninModel(),
             processLogin: function(login) {
+                console.debug(login);
                 window.location = login.next_url;
             },
             processLoginError: function(response) {

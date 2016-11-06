@@ -35,13 +35,23 @@ class TwitterHandlerMixin:
             return None
         return json_decode(user_json)
 
+    def is_signin_next(self):
+        sign_in_url = self.get_rooted_path("sign_in")
+        return sign_in_url in self.session.get("next_url")
 
-class TwitterSignupHandler(TwitterHandlerMixin,
-                          firenado.tornadoweb.TornadoHandler):
+
+class TwitterOauthHandler(TwitterHandlerMixin,
+                          firenado.tornadoweb.TornadoHandler,
+                          RootedHandlerMixin):
 
     @firenado.security.authenticated("twitter")
     @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
+
+        sign_in_url = self.get_rooted_path("sign_in")
+        print(sign_in_url)
+
+        print(self.session.get("next_url"))
         errors = {}
         twitter_user = self.current_user
         if self.social_link_service.by_handler("Oauth:Twitter",
@@ -56,19 +66,20 @@ class TwitterSignupHandler(TwitterHandlerMixin,
             self.redirect(self.session.get("next_url"))
 
 
-class TwitterLoginHandler(TwitterHandlerMixin,
+class TwitterOauthCallbackHandler(TwitterHandlerMixin,
                          firenado.tornadoweb.TornadoHandler, TwitterMixin,
                          RootedHandlerMixin):
     @gen.coroutine
+    @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
         self.settings['twitter_consumer_key'] = self.component.conf[
             'social']['twitter']['key']
         self.settings['twitter_consumer_secret'] = self.component.conf[
             'social']['twitter']['secret']
-
         twitter_url_login = firenado.conf.app['login']['urls']['twitter']
         my_redirect_url = "%s://%s%s" % (self.request.protocol,
                                          self.request.host, twitter_url_login)
+
 
         if self.get_argument('oauth_token', False):
             user = yield self.get_authenticated_user()
@@ -81,8 +92,6 @@ class TwitterLoginHandler(TwitterHandlerMixin,
             del user['profile_sidebar_border_color']
             del user['profile_background_color']
             del user['statuses_count']
-
-
             user['oauth_token'] = self.get_argument('oauth_token')
             user['oauth_verifier'] = self.get_argument('oauth_verifier')
             # Save the user and access token with
@@ -92,5 +101,5 @@ class TwitterLoginHandler(TwitterHandlerMixin,
                                             self.get_rooted_path(
                                                 "twitter/oauth")))
         else:
-            yield self.authorize_redirect(callback_uri=twitter_url_login)
+            yield self.authorize_redirect(callback_uri=my_redirect_url)
                 #extra_params={'approval_prompt': 'force'})

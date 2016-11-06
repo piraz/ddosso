@@ -26,9 +26,9 @@ class TwitterComponent(firenado.tornadoweb.TornadoComponent):
         root = self.conf['root']
         return [
             (r"%s" % rooted_path(root, "twitter/oauth"),
-             handlers.TwitterSignupHandler),
+             handlers.TwitterOauthHandler),
             (r"%s" % rooted_path(root, "twitter/oauthcallback"),
-             handlers.TwitterLoginHandler),
+             handlers.TwitterOauthCallbackHandler),
         ]
 
     def get_config_file(self):

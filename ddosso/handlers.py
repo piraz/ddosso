@@ -143,14 +143,17 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
             'client'].channels['in']
 
     def get(self):
-        errors = None
-        if self.session.has('errors'):
-            errors = self.session.get('errors')
-            self.session.delete('errors')
-        ddosso_logo = self.component.conf['logo']
-        self.session.set("next_url", self.get_rooted_path("sign_up"))
-        self.render("sign_up.html", ddosso_conf=self.component.conf,
-                    ddosso_logo=ddosso_logo, errors=errors)
+        if self.is_logged():
+            self.redirect("/")
+        else:
+            errors = None
+            if self.session.has('errors'):
+                errors = self.session.get('errors')
+                self.session.delete('errors')
+            ddosso_logo = self.component.conf['logo']
+            self.session.set("next_url", self.get_rooted_path("sign_up"))
+            self.render("sign_up.html", ddosso_conf=self.component.conf,
+                        ddosso_logo=ddosso_logo, errors=errors)
 
     @gen.coroutine
     @service.served_by("ddosso.services.AccountService")
@@ -188,8 +191,7 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
                 }
                 self.account_data['social'].append(data)
             user = self.account_service.register(self.account_data)
-            data = {'id': self.account_data['username'],
-                    'next_url': self.get_rooted_path("profile")}
+            data = {'id': self.account_data['username'], 'next_url': "/"}
             self.write(data)
         else:
             self.set_status(403)

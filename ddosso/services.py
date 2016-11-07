@@ -71,7 +71,7 @@ class UserService(service.FirenadoService):
         if "remote_ip" in user_data:
             remote_ip = user_data['remote_ip']
         user = UserBase()
-        user.username = user_data['username']
+        user.username = user_data['username'].lower()
         # TODO: Generate the serialized private key
         user.serialized_private_key = user_data['private_key']
         user.getting_started = True
@@ -156,7 +156,8 @@ class UserService(service.FirenadoService):
         ddosso_conf = load_yaml_config_file(
             os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'conf', 'ddosso.yml'))
-        return '%s%s' % (password, ddosso_conf['diaspora']['password']['pepper'])
+        return '%s%s' % (password, ddosso_conf[
+            'diaspora']['password']['pepper'])
 
 
 class PersonService(service.FirenadoService):
@@ -300,7 +301,7 @@ class ProfileService(service.FirenadoService):
         commit = False
         if not db_session:
             db_session = self.get_data_source(
-                    'diasporapy').get_connection()['session']
+                    'diaspora').get_connection()['session']
             commit = True
         db_session.add(profile)
         if commit:
@@ -418,7 +419,7 @@ class AccountService(service.FirenadoService):
     @service.served_by(UserService)
     def is_login_valid(self, login_data):
         db_session = self.get_data_source(
-            'diasporapy').get_connection()['session']
+            'diaspora').get_connection()['session']
         user = self.user_service.get_by_user_name(
             login_data['username'], db_session)
         if user:

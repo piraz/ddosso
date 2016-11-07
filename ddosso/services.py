@@ -30,6 +30,17 @@ logger = logging.getLogger(__name__)
 
 class UserService(service.FirenadoService):
 
+    def by_id(self, user_id, db_session=None):
+        self_session = False
+        if db_session is None:
+            db_session = self.get_data_source('diaspora').session
+            self_session = True
+        user = db_session.query(UserBase).filter(
+            UserBase.id == user_id).one_or_none()
+        if self_session:
+            db_session.close()
+        return user
+
     def by_username(self, username, db_session=None):
         self_session = False
         if db_session is None:

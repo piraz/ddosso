@@ -17,6 +17,7 @@
 import base64
 
 from ddosso import discourse
+from ddosso.handlers import DdossoHandlerMixin
 
 import firenado.tornadoweb
 from firenado import service
@@ -58,20 +59,26 @@ class DiscourseSSOHandler(firenado.tornadoweb.TornadoHandler):
         self.redirect("login")
 
 
-class DiscourseLoginHandler(firenado.tornadoweb.TornadoHandler):
+class DiscourseLoginHandler(firenado.tornadoweb.TornadoHandler,
+                            DdossoHandlerMixin):
 
-
+    @service.served_by("ddosso.services.LoginService")
     def get(self):
-        errors = {}
-        if self.session.has('login_errors'):
-            errors = self.session.get('login_errors')
+        if self.is_logged():
+            user = self.login_service.user_to_discourse_data(
+                self.get_logged_user())
+            self.deliver_auth_back(user)
+        else:
+            errors = {}
+            if self.session.has('login_errors'):
+                errors = self.session.get('login_errors')
 
-        ddosso_logo = self.component.conf['logo']
-        #print(self.session.get("payload"))
-        #print(self.session.get("signature"))
+            ddosso_logo = self.component.conf['logo']
+            #print(self.session.get("payload"))
+            #print(self.session.get("signature"))
 
-        self.render("login.html", ddosso_conf=self.component.conf,
-                    ddosso_logo=ddosso_logo, errors=errors)
+            self.render("login.html", ddosso_conf=self.component.conf,
+                        ddosso_logo=ddosso_logo, errors=errors)
 
     @service.served_by("ddosso.services.LoginService")
     @service.served_by("ddosso.services.UserService")
@@ -97,10 +104,13 @@ class DiscourseLoginHandler(firenado.tornadoweb.TornadoHandler):
             self.redirect("login")
             return
         else:
-            # Getting real ip from the nginx
-            x_real_ip = self.request.headers.get("X-Real-IP")
-            remote_ip = x_real_ip or self.request.remote_ip
-            #self.user_service.set_user_seem(user, remote_ip)
+            self.deliver_auth_back(user)
+
+    def deliver_auth_back(self, user):
+        # Getting real ip from the nginx
+        x_real_ip = self.request.headers.get("X-Real-IP")
+        remote_ip = x_real_ip or self.request.remote_ip
+        #self.user_service.set_user_seem(user, remote_ip)
 
         sso_data = discourse.get_sso_data(self.session.get("payload"))
         params = {

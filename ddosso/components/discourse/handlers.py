@@ -104,7 +104,22 @@ class DiscourseLoginHandler(firenado.tornadoweb.TornadoHandler,
             self.redirect("login")
             return
         else:
-            self.deliver_auth_back(user)
+            from ddosso.ruby_utils import RailsCookie
+            from ddosso.handlers import DIASPORA_SESSION_COOKIE
+            conf = self.component.conf['diaspora']
+            rails_cookie = RailsCookie(conf['cookie']['secret'])
+            user = self.user_service.by_username(username)
+            session_data = {
+                'session_id': str(rails_cookie.gen_cookie_id()),
+                'warden.user.user.key': [
+                    [user.id],
+                    user.encrypted_password[:29],
+                ]
+            }
+            self.set_cookie(DIASPORA_SESSION_COOKIE, rails_cookie.encrypt(
+                tornado.escape.json_encode(session_data)))
+            self.deliver_auth_back(self.login_service.user_to_discourse_data(
+                user))
 
     def deliver_auth_back(self, user):
         # Getting real ip from the nginx

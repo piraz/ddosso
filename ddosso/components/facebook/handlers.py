@@ -35,7 +35,8 @@ class FacebookHandlerMixin:
             return None
         return json_decode(user_json)
 
-#to get avatar https://developers.facebook.com/docs/graph-api/reference/user/picture/
+
+#Check https://developers.facebook.com/docs/graph-api/reference/user/picture/
 class FacebookRouterHandler(FacebookHandlerMixin,
                           firenado.tornadoweb.TornadoHandler,
                           DdossoHandlerMixin):
@@ -43,25 +44,18 @@ class FacebookRouterHandler(FacebookHandlerMixin,
     @firenado.security.authenticated("facebook")
     @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
-
-        sign_in_url = self.get_rooted_path("sign_in")
-        print(sign_in_url)
-
-        print(self.session.get("next_url"))
         errors = {}
-        if False:
-            facebook_user = self.current_user
-            print(facebook_user)
-            if self.social_link_service.by_handler("Graph:Facebook",
-                                                   facebook_user['username']):
-                self.session.delete(self.SESSION_KEY)
-                errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
-                                    "login e associe sua conta ao seu perfil do "
-                                    "Twitter.")
-                self.session.set("errors", errors)
-                self.redirect("%s" % self.component.conf['root'])
-            else:
-                self.redirect(self.session.get("next_url"))
+        facebook_user = self.current_user
+        if self.social_link_service.by_handler("Oauth2:Facebook",
+                                               facebook_user['id']):
+            self.session.delete(self.SESSION_KEY)
+            errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
+                                "login e associe sua conta ao seu perfil do "
+                                "Twitter.")
+            self.session.set("errors", errors)
+            self.redirect("%s" % self.component.conf['root'])
+        else:
+            self.redirect(self.session.get("next_url"))
 
 
 class FacebookGraphAuthHandler(FacebookHandlerMixin,
@@ -95,27 +89,9 @@ class FacebookGraphAuthHandler(FacebookHandlerMixin,
 
     @tornado.web.asynchronous
     def _on_auth(self, user):
+        print(user)
         if not user:
             raise tornado.web.HTTPError(500, "Facebook auth failed")
         self.session.set(self.SESSION_KEY, json_encode(user))
 
-        self.redirect(self.get_rooted_path("/facebook/get_avatar"))
-
-
-class FacebookAvatarHandler(FacebookHandlerMixin,
-                            firenado.tornadoweb.TornadoHandler,
-                            FacebookGraphMixin, DdossoHandlerMixin):
-    @tornado.web.asynchronous
-    def get(self):
-        self.facebook_request("/v2.8/%s/picture" % self.current_user["id"],
-                              self._on_stream,
-                              access_token=self.current_user["access_token"])
-
-    def _on_stream(self, stream):
-        if stream is None:
-            # Session may have expired
-            self.redirect("/auth/login")
-            return
-        print(stream.encode())
-
-        #self.redirect(self.get_argument("next", self.get_rooted_path("/facebook/authorize")))
+        self.redirect(self.get_rooted_path("/facebook/authorize"))

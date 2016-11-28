@@ -47,11 +47,6 @@ class TwitterOauthHandler(TwitterHandlerMixin,
     @firenado.security.authenticated("twitter")
     @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
-
-        sign_in_url = self.get_rooted_path("sign_in")
-        print(sign_in_url)
-
-        print(self.session.get("next_url"))
         errors = {}
         twitter_user = self.current_user
         if self.social_link_service.by_handler("Oauth:Twitter",

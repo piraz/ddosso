@@ -29,8 +29,6 @@ class FacebookComponent(firenado.tornadoweb.TornadoComponent):
              handlers.FacebookRouterHandler),
             (r"%s" % rooted_path(root, "facebook/graph_auth"),
              handlers.FacebookGraphAuthHandler),
-            (r"%s" % rooted_path(root, "facebook/get_avatar"),
-             handlers.FacebookAvatarHandler),
         ]
 
     def get_config_file(self):

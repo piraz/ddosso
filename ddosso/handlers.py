@@ -31,6 +31,7 @@ import uuid
 logger = logging.getLogger(__name__)
 
 DIASPORA_SESSION_COOKIE = "_diaspora_session"
+FACEBOOK_USER = "facebook_user"
 GOOGLE_USER = "google_user"
 TWITTER_USER = "twitter_user"
 
@@ -190,6 +191,15 @@ class SignupHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
             self.in_channel.queue_declare(
                 exclusive=True, callback=self.on_request_queue_declared)
             yield self.condition.wait()
+            if self.session.has(FACEBOOK_USER):
+                facebook_user = tornado.escape.json_decode(
+                    self.session.get(FACEBOOK_USER))
+                data = {
+                    'type': "Oauth2:Facebook",
+                    'data': self.session.get(FACEBOOK_USER),
+                    'handler': facebook_user['id'],
+                }
+                self.account_data['social'].append(data)
             if self.session.has(GOOGLE_USER):
                 google_user = tornado.escape.json_decode(
                     self.session.get(GOOGLE_USER))
@@ -265,6 +275,20 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
             'google': {'enabled': conf['google']['enabled']},
             'twitter': {'enabled': conf['twitter']['enabled']}
         }
+        if conf['facebook']['enabled']:
+            if name == "sign_in":
+                self.session.delete(FACEBOOK_USER)
+            if self.session.has(FACEBOOK_USER):
+                facebook_user = tornado.escape.json_decode(
+                    self.session.get(FACEBOOK_USER))
+                print(facebook_user)
+                social_data['authenticated'] = True
+                social_data['type'] = "facebook"
+                social_data['handler'] = facebook_user['name']
+                social_data['picture'] = facebook_user[
+                    'picture']['data']['url']
+                social_data['first_name'] = facebook_user['first_name']
+                social_data['last_name'] = facebook_user['last_name']
         if conf['google']['enabled']:
             if name == "sign_in":
                 self.session.delete(GOOGLE_USER)
@@ -294,6 +318,9 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
 
     def delete(self, name):
         conf = self.component.conf['social']
+        if conf['facebook']['enabled']:
+            if self.session.has(FACEBOOK_USER):
+                self.session.delete(FACEBOOK_USER)
         if conf['google']['enabled']:
             if self.session.has(GOOGLE_USER):
                 self.session.delete(GOOGLE_USER)

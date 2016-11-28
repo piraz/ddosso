@@ -107,7 +107,6 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
             self.redirect("/")
         else:
             self.session.set("next_url", self.get_rooted_path("sign_in"))
-
             errors = None
             if self.session.has('errors'):
                 errors = self.session.get('errors')

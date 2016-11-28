@@ -49,9 +49,9 @@ class FacebookRouterHandler(FacebookHandlerMixin,
         if self.social_link_service.by_handler("Oauth2:Facebook",
                                                facebook_user['id']):
             self.session.delete(self.SESSION_KEY)
-            errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
-                                "login e associe sua conta ao seu perfil do "
-                                "Twitter.")
+            errors['signup'] = ("Este perfil de facebook já está associada a "
+                                "outra conta. Não é possivel associá-la a "
+                                "outro usuário.")
             self.session.set("errors", errors)
             self.redirect("%s" % self.component.conf['root'])
         else:

@@ -20,6 +20,7 @@ from .forms import SigninForm, SignupForm
 from .util import only_ajax, rooted_path
 
 import firenado.security
+from firenado import security
 from firenado import service
 
 import logging
@@ -59,6 +60,9 @@ class DdossoHandlerMixin:
             self.clear_cookie(DIASPORA_SESSION_COOKIE)
         return False
 
+    def get_current_user(self):
+        return self.get_logged_user()
+
     @service.served_by("ddosso.services.UserService")
     def get_logged_user(self):
         from .ruby_utils import RailsCookie
@@ -88,16 +92,28 @@ class IndexHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
         self.redirect(self.get_rooted_path("/sign_in"), permanent=True)
 
 
-class ProfileHandler(firenado.tornadoweb.TornadoHandler):
+class ProfileHandler(DdossoHandlerMixin, firenado.tornadoweb.TornadoHandler):
 
+    @security.authenticated
+    @service.served_by("ddosso.services.PersonService")
+    @service.served_by("ddosso.services.ProfileService")
     def get(self):
+        user = self.get_current_user()
+        person = self.person_service.by_user(user)
+        profile = self.profile_service.by_person(person)
+        account = {
+            'user': user,
+            'person': person,
+            'profile': profile,
+        }
         errors = None
         if self.session.has('errors'):
             errors = self.session.get('errors')
             self.session.delete('errors')
         ddosso_logo = self.component.conf['logo']
-        self.render("profile.html", ddosso_conf=self.component.conf,
-                    ddosso_logo=ddosso_logo, errors=errors)
+        self.render("profile.html", account=account,
+                    ddosso_conf=self.component.conf, ddosso_logo=ddosso_logo,
+                    errors=errors)
 
 
 class SigninHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):

@@ -18,7 +18,7 @@ from datetime import datetime
 from firenado import service
 from firenado.config import load_yaml_config_file
 from .diaspora.models import (AspectBase, DddossoSocialLinkBase, PersonBase,
-                              ProfileBase, UserBase)
+                              ProfileBase, UserBase, TagBase, TagFollowingBase)
 import logging
 from passlib.hash import bcrypt
 import os
@@ -429,3 +429,15 @@ class AccountService(service.FirenadoService):
                     login_data['password'], user.encrypted_password):
                 return user
         return False
+
+
+class TagService(service.FirenadoService):
+
+    def by_user(self, user):
+        db_session = self.get_data_source('diaspora').session
+        tags = db_session.query(TagBase).filter(
+            TagBase.id == TagFollowingBase.tag_id).filter(
+            TagFollowingBase.user_id == user.id).all()
+        db_session.close()
+        return tags
+

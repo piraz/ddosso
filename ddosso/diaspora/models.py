@@ -715,7 +715,6 @@ class ProfileBase(Base):
                             DefaultClause('false'), nullable=True)
 
     def get_image_url(self, pod_url=None):
-        print(self.image_url)
         if self.image_url is None or self.image_url=="":
             if pod_url is None:
                 pod_url = ""

@@ -97,14 +97,17 @@ class ProfileHandler(DdossoHandlerMixin, firenado.tornadoweb.TornadoHandler):
     @security.authenticated
     @service.served_by("ddosso.services.PersonService")
     @service.served_by("ddosso.services.ProfileService")
+    @service.served_by("ddosso.services.TagService")
     def get(self):
         user = self.get_current_user()
         person = self.person_service.by_user(user)
         profile = self.profile_service.by_person(person)
+        tags = self.tag_service.by_user(user)
         account = {
             'user': user,
             'person': person,
             'profile': profile,
+            'tags': tags,
         }
         errors = None
         if self.session.has('errors'):
@@ -296,7 +299,6 @@ class SocialHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
             if self.session.has(FACEBOOK_USER):
                 facebook_user = tornado.escape.json_decode(
                     self.session.get(FACEBOOK_USER))
-                print(facebook_user)
                 social_data['authenticated'] = True
                 social_data['type'] = "facebook"
                 social_data['handler'] = facebook_user['name']

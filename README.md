@@ -11,3 +11,7 @@ Gmail authentication.
 ```shell
 yum install libjpeg-turbo-devel freetype-devel libXft-devel dejavu-sans-fonts liberation-serif-fonts
 ```
+
+## Icon Finder
+
+https://www.iconfinder.com

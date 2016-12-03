@@ -58,8 +58,8 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
         return "ddosso"
 
     def initialize(self):
-        print(load_yaml_config_file(os.path.join(firenado.conf.APP_CONFIG_PATH,
-                                               'rabbitmq.yml')))
+        self.conf['diaspora']['domain'] = self.conf['diaspora'][
+            'url'].replace("https://", "").replace("http://", "")
         self.rabbitmq['client'] = RabbitMQClient(
             load_yaml_config_file(os.path.join(firenado.conf.APP_CONFIG_PATH,
                                                'rabbitmq.yml')))

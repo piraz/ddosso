@@ -24,6 +24,10 @@ from tornado.auth import TwitterMixin
 from tornado.escape import json_encode, json_decode
 from tornado import gen
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class TwitterHandlerMixin:
 
@@ -50,10 +54,18 @@ class TwitterOauthHandler(TwitterHandlerMixin,
         errors = {}
         twitter_user = self.current_user
         next_url = self.session.get("next_url")
-
+        logger.info("Authenticated twitter profile %s being redirected." %
+                    twitter_user['username'])
         if next_url == self.get_rooted_path("sign_up"):
+            logger.info("User is trying to create a new account associated"
+                        " with a twitter profile %s." %
+                        twitter_user['username'])
             if self.social_link_service.by_handler("Oauth:Twitter",
                                                    twitter_user['username']):
+                logger.error("The twitter profile %s is already associated "
+                             "with an existent account. "
+                             "Sending an error to sign up form." %
+                             twitter_user['username'])
                 self.session.delete(self.SESSION_KEY)
                 errors['request'] = ("Este perfil do twitter já está "
                                      "associado a outra conta. Não é possivel "
@@ -61,6 +73,7 @@ class TwitterOauthHandler(TwitterHandlerMixin,
                 self.session.set("errors", errors)
             self.redirect(self.session.get("next_url"))
         else:
+            self.session.delete(self.SESSION_KEY)
             self.redirect(self.session.get("/"))
 
 
@@ -78,7 +91,6 @@ class TwitterOauthCallbackHandler(TwitterHandlerMixin,
         my_redirect_url = "%s://%s%s" % (self.request.protocol,
                                          self.request.host, twitter_url_login)
 
-
         if self.get_argument('oauth_token', False):
             user = yield self.get_authenticated_user()
             del user['description']
@@ -94,8 +106,11 @@ class TwitterOauthCallbackHandler(TwitterHandlerMixin,
             user['oauth_verifier'] = self.get_argument('oauth_verifier')
             # Save the user and access token with
             # e.g. set_secure_cookie.
+            logger.info("User validated the twitter profile %s successfully." %
+                        user['username'])
             self.session.set(self.SESSION_KEY, json_encode(user))
             self.redirect(self.get_rooted_path("twitter/oauth"))
         else:
+            logger.info("User is trying to authenticate a twitter profile.")
             yield self.authorize_redirect(callback_uri=my_redirect_url)
                 #extra_params={'approval_prompt': 'force'})

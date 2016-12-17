@@ -49,21 +49,24 @@ class TwitterOauthHandler(TwitterHandlerMixin,
     def get(self):
         errors = {}
         twitter_user = self.current_user
-        if self.social_link_service.by_handler("Oauth:Twitter",
-                                               twitter_user['username']):
-            self.session.delete(self.SESSION_KEY)
-            errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
-                                "login e associe sua conta ao seu perfil do "
-                                "Twitter.")
-            self.session.set("errors", errors)
-            self.redirect("%s" % self.component.conf['root'])
-        else:
+        next_url = self.session.get("next_url")
+
+        if next_url == self.get_rooted_path("sign_up"):
+            if self.social_link_service.by_handler("Oauth:Twitter",
+                                                   twitter_user['username']):
+                self.session.delete(self.SESSION_KEY)
+                errors['request'] = ("Este perfil do twitter já está "
+                                     "associado a outra conta. Não é possivel "
+                                     "associá-lo a um novo usuário.")
+                self.session.set("errors", errors)
             self.redirect(self.session.get("next_url"))
+        else:
+            self.redirect(self.session.get("/"))
 
 
 class TwitterOauthCallbackHandler(TwitterHandlerMixin,
-                                  firenado.tornadoweb.TornadoHandler, TwitterMixin,
-                                  DdossoHandlerMixin):
+                                  firenado.tornadoweb.TornadoHandler,
+                                  TwitterMixin,DdossoHandlerMixin):
     @gen.coroutine
     @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
@@ -92,9 +95,7 @@ class TwitterOauthCallbackHandler(TwitterHandlerMixin,
             # Save the user and access token with
             # e.g. set_secure_cookie.
             self.session.set(self.SESSION_KEY, json_encode(user))
-            self.redirect(self.get_argument('next',
-                                            self.get_rooted_path(
-                                                "twitter/oauth")))
+            self.redirect(self.get_rooted_path("twitter/oauth"))
         else:
             yield self.authorize_redirect(callback_uri=my_redirect_url)
                 #extra_params={'approval_prompt': 'force'})

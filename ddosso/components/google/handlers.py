@@ -37,21 +37,24 @@ class GoogleHandlerMixin:
 
 
 class GoogleSignupHandler(GoogleHandlerMixin,
-                          firenado.tornadoweb.TornadoHandler):
+                          firenado.tornadoweb.TornadoHandler,
+                          DdossoHandlerMixin):
 
     @firenado.security.authenticated("google")
     @service.served_by("ddosso.services.UserService")
     def get(self):
         errors = {}
         google_user = self.current_user
-        if self.user_service.by_email(google_user['email']):
-            self.session.delete(self.SESSION_KEY)
-            errors['signup'] = ("Este email já está cadastrado no pod. Faça o "
-                                "login e associe sua conta os seu perfil do "
-                                "Google.")
-            self.session.set("errors", errors)
-            self.redirect("%s" % self.component.conf['root'])
-        else:
+        next_url = self.session.get("next_url")
+
+        if next_url == self.get_rooted_path("sign_up"):
+            if self.user_service.by_email(google_user['email']):
+                self.session.delete(self.SESSION_KEY)
+                errors['request'] = ("Este email já está cadastrado no pod. "
+                                     "Faça o login com a conta cadastrada "
+                                     "com esse email e associe o seu perfil do"
+                                     " Google.")
+                self.session.set("errors", errors)
             self.redirect(self.session.get("next_url"))
 
 

@@ -38,25 +38,25 @@ class FacebookHandlerMixin:
 
 #Check https://developers.facebook.com/docs/graph-api/reference/user/picture/
 class FacebookRouterHandler(FacebookHandlerMixin,
-                          firenado.tornadoweb.TornadoHandler,
-                          DdossoHandlerMixin):
+                            firenado.tornadoweb.TornadoHandler,
+                            DdossoHandlerMixin):
 
     @firenado.security.authenticated("facebook")
     @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
         errors = {}
         facebook_user = self.current_user
-        if self.social_link_service.by_handler("Oauth2:Facebook",
-                                               facebook_user['id']):
-            self.session.delete(self.SESSION_KEY)
-            errors['signup'] = ("Este perfil de facebook já está associada a "
-                                "outra conta. Não é possivel associá-la a "
-                                "outro usuário.")
-            self.session.set("errors", errors)
-            self.redirect("%s" % self.component.conf['root'])
-        else:
-            self.redirect(self.session.get("next_url"))
+        next_url = self.session.get("next_url")
 
+        if next_url == self.get_rooted_path("sign_up"):
+            if self.social_link_service.by_handler("Oauth2:Facebook",
+                                                   facebook_user['id']):
+                self.session.delete(self.SESSION_KEY)
+                errors['request'] = ("Este perfil de facebook já está "
+                                     "associado a outra conta. Não é possivel "
+                                     "associá-lo a um novo usuário.")
+                self.session.set("errors", errors)
+            self.redirect(self.session.get("next_url"))
 
 class FacebookGraphAuthHandler(FacebookHandlerMixin,
                                firenado.tornadoweb.TornadoHandler,

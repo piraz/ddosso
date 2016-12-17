@@ -1,8 +1,8 @@
 {% if errors %}
-    {% if "signup" in errors %}
+    {% if "request" in errors %}
     <div class="col-sm-offset-3 col-sm-6 alert alert-danger" role="alert">
       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-      {{ errors['signup'] }}
+      {{ errors['request'] }}
     </div>
     {% end %}
 {% end %}

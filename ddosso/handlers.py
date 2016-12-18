@@ -126,11 +126,24 @@ class ProfileHandler(DdossoHandlerMixin, firenado.tornadoweb.TornadoHandler):
     @service.served_by("ddosso.services.PersonService")
     @service.served_by("ddosso.services.ProfileService")
     @service.served_by("ddosso.services.TagService")
+    @service.served_by("ddosso.services.SocialLinkService")
     def get(self):
         user = self.get_current_user()
         person = self.person_service.by_user(user)
         profile = self.profile_service.by_person(person)
         tags = self.tag_service.by_user(user)
+        social_links = {
+            'facebook': None,
+            'google': None,
+            'twitter': None
+        }
+        for social_link in self.social_link_service.by_user(user):
+            if social_link.type == 'Oauth2:Facebook':
+                social_links['facebook'] = social_link
+            if social_link.type == 'Oauth2: Google':
+                social_links['google'] = social_link
+            if social_link.type == 'Oauth:Twitter':
+                social_links['twitter'] = social_link
         account = {
             'user': user,
             'person': person,
@@ -144,7 +157,41 @@ class ProfileHandler(DdossoHandlerMixin, firenado.tornadoweb.TornadoHandler):
         ddosso_logo = self.component.conf['logo']
         self.render("profile.html", account=account,
                     ddosso_conf=self.component.conf, ddosso_logo=ddosso_logo,
-                    errors=errors)
+                    social_links=social_links, errors=errors)
+
+
+class DiasporaProfileHandler(DdossoHandlerMixin,
+                             firenado.tornadoweb.TornadoHandler):
+
+    @security.authenticated
+    @only_ajax
+    @service.served_by("ddosso.services.PersonService")
+    @service.served_by("ddosso.services.ProfileService")
+    @service.served_by("ddosso.services.TagService")
+    def post(self):
+        user = self.get_current_user()
+        person = self.person_service.by_user(user)
+        profile = self.profile_service.by_person(person)
+        tags = self.tag_service.by_user(user)
+        account = {
+            'diaspora_url': self.component.conf['diaspora']['url'],
+            'profile': {
+                'profile_id': profile.id,
+                'user_id': user.id,
+                'username': user.username,
+                'image_url': profile.get_image_url(),
+                'first_name': profile.first_name,
+                'last_name': profile.last_name,
+                'handler': "%s@%s" % (user.username,
+                                      self.component.conf[
+                                          'diaspora']['domain']),
+                'bio': profile.bio,
+            },
+            'tags': [],
+        }
+        for tag in tags:
+            account['tags'].append({'id': tag.id, 'name': tag.name,})
+        self.write(account)
 
 
 class SigninHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):

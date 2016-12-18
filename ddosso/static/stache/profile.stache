@@ -1,54 +1,40 @@
-<div class="row">
-    <div class="col-sm-offset-3 col-sm-6">
-        <div class="row text-center">
-            <div class="col-sm-offset-3 col-sm-2">
-                <img src="" alt="" class="img-thumbnail">
-                <button id="facebookGraph" class="btn btn-block btn-social facebook">
-                    <i class="fa fa-facebook"></i>
-                </button>
-            </div>
-            <div class="col-sm-4">
-                <div class="row">
-                    <div>First Name: First Name</div>
-                    <div>Last Name: Last Name</div>
-                    <div class="text-center">
-                        <a id="resetOauth"  href="javascript:void(0)" class="link-register">Usar outra rede social</a>
+<div class="section-social-buttons">
+    <div class="row">
+        <div class="col-sm-offset-2 col-sm-8">
+            <div class="row">
+                {{#profile}}
+                <div class="col-sm-offset-1 col-sm-2">
+                    <img src="{{image_url}}" alt="" class="img-rounded img-thumbnail">
+                </div>
+                <div class="col-sm-8">
+                    <div class="row">
+                        <div><label>Handler:</label> {{handler}} <a href="{{{ diaspora_url }}}/profile/edit">Edit Profile</a></div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <hr>
-        <div class="row text-center">
-            <div class="col-sm-offset-3 col-sm-2">
-                <img src="" alt="" class="img-thumbnail">
-                <button id="googleOauth" class="btn btn-block btn-social google">
-                    <i class="fa fa-google-plus"></i>
-                </button>
-            </div>
-            <div class="col-sm-4">
-                <div class="row">
-                    <div>First Name: First Name</div>
-                    <div>Last Name: Last Name</div>
-                    <div class="text-center">
-                        <a id="resetOauth"  href="javascript:void(0)" class="link-register">Usar outra rede social</a>
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div><label>First name:</label> {{first_name}}</div>
                     </div>
                 </div>
+                <div class="col-sm-4">
+                    <div class="row">
+                        <div><label>Last name:</label> {{last_name}}</div>
+                    </div>
+                </div>
+                <div class="col-sm-8">
+                    <div class="row">
+                        <div><label>Bio:</label></div>
+                        <div>{{bio}}</div>
+                    </div>
+                </div>
+                {{/profile}}
             </div>
-        </div>
-        <hr>
-        <div class="row text-center">
-            <div class="col-sm-offset-3 col-sm-2">
-                <img src="" alt="" class="img-thumbnail">
-                <button id="twitterOauth" class="btn btn-block btn-social twitter">
-                    <i class="fa fa-twitter"></i>
-                </button>
-            </div>
-            <div class="col-sm-4">
-                <div class="row">
-                    <div>First Name: First Name</div>
-                    <div>Last Name: Last Name</div>
-                    <div class="text-center">
-                        <a id="resetOauth"  href="javascript:void(0)" class="link-register">Usar outra rede social</a>
+            <div class="row">
+                <div class="col-sm-offset-3 col-sm-8">
+                    <div class="row">
+                        <div>
+                            <div><label>Tags:</label> {{#each tags}} <a href="{{{ diaspora_url }}}/tags/{{name}}">#{{name}}</a> {{/each}}</div>
+                        </div>
                     </div>
                 </div>
             </div>

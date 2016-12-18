@@ -2,11 +2,19 @@
 
 {% block content %}
     {% raw modules.EmbedStache("profileComponentStache", "profile.stache") %}
+    {% raw modules.EmbedStache("socialProfilesComponentStache", "social_profiles.stache") %}
     <div class="container">
         <div class="login-logo text-center">
             <img src="{{ ddosso_logo }}">
         </div>
         <div class="login-box">
+             <div class="box-body">
+                <div class="row">
+                    <div class="col-sm-offset-2 col-sm-8 text-right">
+                        <div><a href="{{ ddosso_conf['diaspora']['url'] }}">Pod</a> Discourse <a href="{{ ddosso_conf['diaspora']['url'] }}/users/sign_out">Logout</a></div>
+                    </div>
+                </div>
+            </div>
             <div class="box-header">
                 <div class="row">
                     <div class="col-sm-offset-2 col-sm-8">
@@ -15,48 +23,7 @@
                 </div>
             </div>
             <div class="box-body">
-                <div class="section-social-buttons">
-                    <div class="row">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <div class="row">
-                                <div class="col-sm-offset-1 col-sm-2">
-                                    <img src="{{ account['profile'].get_image_url() }}" alt="" class="img-rounded img-thumbnail">
-                                </div>
-                                <div class="col-sm-8">
-                                    <div class="row">
-                                        <div><label>Handler:</label> {{ account['user'].username }}@{{ ddosso_conf['diaspora']['domain'] }} <a href="{{ ddosso_conf['diaspora']['url'] }}/profile/edit">Edit Profile</a></div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="row">
-                                        <div><label>First name:</label> {{ account['profile'].first_name if account['profile'].first_name else "" }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="row">
-                                        <div><label>Last name:</label> {{ account['profile'].last_name if account['profile'].last_name else "" }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-8">
-                                    <div class="row">
-                                        <div><label>Bio:</label></div>
-                                        <div>{{ account['profile'].bio }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-offset-3 col-sm-8">
-                                    <div class="row">
-                                        <div>
-                                            <div><label>Tags:</label> {% for tag in account['tags']%}<a href="{{ ddosso_conf['diaspora']['url'] }}/tags/{{tag.name}}">#{{tag.name}}</a> {% end %}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
+                <div id="profileComponentHolder" class="section-social-buttons"></div>
             </div>
             <div class="box-header">
                 <div class="row">
@@ -66,7 +33,7 @@
                 </div>
             </div>
             <div class="box-body">
-                <div id="profileComponentHolder" class="section-social-buttons"></div>
+                <div id="socialProfilesComponentHolder" class="section-social-buttons"></div>
             </div>
         </div>
     </div>

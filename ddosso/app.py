@@ -46,6 +46,8 @@ class DDOSSOComponent(firenado.tornadoweb.TornadoComponent):
             (r"%s" % rooted_path(root, "/captcha/(.*)"),
              handlers.CaptchaHandler),
             (r"%s" % rooted_path(root, "/profile"), handlers.ProfileHandler),
+            (r"%s" % rooted_path(root, "/profile/diaspora"),
+             handlers.DiasporaProfileHandler),
             (r"%s" % rooted_path(root, "/sign_in"), handlers.SigninHandler),
             (r"%s" % rooted_path(root, "/sign_up"), handlers.SignupHandler),
             (r"%s" % rooted_path(root, "/social/(.*)"), handlers.SocialHandler),

@@ -255,6 +255,12 @@ class SocialLinkService(service.FirenadoService):
             DddossoSocialLinkBase.handler == handler).one_or_none()
         db_session.close()
 
+    def by_user(self, user):
+        db_session = self.get_data_source('diaspora').session
+        return db_session.query(DddossoSocialLinkBase).filter(
+            DddossoSocialLinkBase.user_id == user.id).all()
+        db_session.close()
+
 
 class ProfileService(service.FirenadoService):
 

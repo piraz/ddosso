@@ -39,10 +39,6 @@ class TwitterHandlerMixin:
             return None
         return json_decode(user_json)
 
-    def is_signin_next(self):
-        sign_in_url = self.get_rooted_path("sign_in")
-        return sign_in_url in self.session.get("next_url")
-
 
 class TwitterOauthHandler(TwitterHandlerMixin,
                           firenado.tornadoweb.TornadoHandler,
@@ -50,13 +46,35 @@ class TwitterOauthHandler(TwitterHandlerMixin,
 
     @firenado.security.authenticated("twitter")
     @service.served_by("ddosso.services.SocialLinkService")
+    @service.served_by("ddosso.services.UserService")
     def get(self):
         errors = {}
         twitter_user = self.current_user
-        next_url = self.session.get("next_url")
         logger.info("Authenticated twitter profile %s being redirected." %
                     twitter_user['username'])
-        if next_url == self.get_rooted_path("sign_up"):
+        if self.is_signin_next():
+            logger.info("User is trying to sign in with the twitter profile "
+                        "%s." % twitter_user['username'])
+            social_link = self.social_link_service.by_handler("Oauth:Twitter",
+                                                twitter_user['username'])
+            if social_link:
+                user = self.user_service.by_id(social_link.user_id)
+                logger.info("User %s associated with the twitter profile %s."
+                            "Signing in user." % (user.username,
+                                                  twitter_user['username']))
+                self.sing_in_user(user)
+                self.session.delete(self.SESSION_KEY)
+            else:
+                logger.error("The twitter profile %s is not associated with"
+                             "any account. Sign in failed. Sending error to "
+                             "sign in form." % twitter_user['username'])
+                self.session.delete(self.SESSION_KEY)
+                errors['request'] = ("Este perfil do twitter não está "
+                                     "associado com nenhuma conta. Login "
+                                     "inválido.")
+                self.session.set("errors", errors)
+            self.redirect(self.session.get("next_url"))
+        elif self.is_signup_next():
             logger.info("User is trying to create a new account associated"
                         " with a twitter profile %s." %
                         twitter_user['username'])
@@ -74,7 +92,7 @@ class TwitterOauthHandler(TwitterHandlerMixin,
             self.redirect(self.session.get("next_url"))
         else:
             self.session.delete(self.SESSION_KEY)
-            self.redirect(self.session.get("/"))
+            self.redirect(self.get_rooted_path("/"))
 
 
 class TwitterOauthCallbackHandler(TwitterHandlerMixin,

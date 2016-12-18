@@ -81,9 +81,37 @@ class DdossoHandlerMixin:
                         return user
         return None
 
+    @service.served_by("ddosso.services.UserService")
+    def sing_in_user(self, user):
+        from .ruby_utils import RailsCookie
+        conf = self.component.conf['diaspora']
+        rails_cookie = RailsCookie(conf['cookie']['secret'])
+        session_data = {
+            'session_id': str(rails_cookie.gen_cookie_id()),
+            'warden.user.user.key': [
+                [user.id],
+                user.encrypted_password[:29],
+            ]
+        }
+        self.set_cookie(DIASPORA_SESSION_COOKIE, rails_cookie.encrypt(
+            tornado.escape.json_encode(session_data)))
+        # Getting real ip from the nginx
+        x_real_ip = self.request.headers.get("X-Real-IP")
+        remote_ip = x_real_ip or self.request.remote_ip
+        self.user_service.set_user_seem({'username': user.username},
+                                        remote_ip)
+
     def get_rooted_path(self, path):
         root = self.component.conf['root']
         return rooted_path(root, path)
+
+    def is_signin_next(self):
+        sign_in_url = self.get_rooted_path("sign_in")
+        return sign_in_url in self.session.get("next_url")
+
+    def is_signup_next(self):
+        sign_up_url = self.get_rooted_path("sign_up")
+        return sign_up_url in self.session.get("next_url")
 
 
 class IndexHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
@@ -139,24 +167,9 @@ class SigninHandler(firenado.tornadoweb.TornadoHandler, DdossoHandlerMixin):
         error_data = {'errors': {}}
         form = SigninForm(self.request.arguments, handler=self)
         if form.validate():
-            from .ruby_utils import RailsCookie
-            conf = self.component.conf['diaspora']
-            rails_cookie = RailsCookie(conf['cookie']['secret'])
             account_data = form.data
             user = self.user_service.by_username(account_data['username'])
-            session_data = {
-                'session_id': str(rails_cookie.gen_cookie_id()),
-                'warden.user.user.key': [
-                    [user.id],
-                    user.encrypted_password[:29],
-                ]
-            }
-            self.set_cookie(DIASPORA_SESSION_COOKIE, rails_cookie.encrypt(
-                tornado.escape.json_encode(session_data)))
-            # Getting real ip from the nginx
-            x_real_ip = self.request.headers.get("X-Real-IP")
-            remote_ip = x_real_ip or self.request.remote_ip
-            self.user_service.set_user_seem(account_data, remote_ip)
+            self.sing_in_user(user)
             self.set_status(200)
             data = {'id': account_data['username'], 'next_url': "/"}
             self.write(data)
